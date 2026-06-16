@@ -4,7 +4,7 @@
 
 This project is currently in an early development stage.
 
-The current version focuses on exploratory analysis, preprocessing, feature engineering, baseline model comparison, and an initial final model experiment using ClinVar-derived data. The project is notebook-first at this stage, while the reusable Python scripts in `src/` are planned for future development.
+The current version includes exploratory notebooks and an initial reproducible Python pipeline for preprocessing, training, and evaluation using ClinVar-derived data.
 
 The results reported here are preliminary and are intended to document the current progress of the project.
 
@@ -19,9 +19,10 @@ The current workflow includes:
 - Data exploration
 - Data preprocessing
 - Feature engineering
-- Baseline model development
+- Balanced sample generation
+- Random Forest model training
 - Initial model evaluation
-- Feature importance analysis
+- Probability-based evaluation metrics
 
 The goal is to explore how genomic and clinical features can contribute to variant pathogenicity prediction.
 
@@ -42,6 +43,11 @@ clinvar_features.csv
 ```
 
 The full raw and processed datasets are not intended to be committed to GitHub because of their size. The repository is expected to include the code, notebooks, reports, and generated outputs, while large data files should be downloaded or regenerated separately.
+
+The current preprocessing script supports:
+
+- a development mode for quick testing on a small number of rows;
+- a balanced-sample mode that reads the large ClinVar file in chunks and collects an equal number of benign and pathogenic variants.
 
 ### Target Classes
 
@@ -68,14 +74,20 @@ genetic-variant-classification/
 │
 ├── reports/
 │   ├── initial_report.md
+│   ├── literature_triage.md
+│   ├── classification_report.txt
 │   ├── confusion_matrix.png
+│   ├── probability_metrics.txt
 │   ├── feature_importance.csv
 │   └── feature_importance.png
 │
 ├── models/
-│   └── final_model.pkl
+│   ├── final_model.pkl
+│   └── random_forest_model.pkl
 │
 ├── src/
+│   ├── config.py
+│   ├── features.py
 │   ├── preprocessing.py
 │   ├── train.py
 │   └── evaluate.py
@@ -84,7 +96,7 @@ genetic-variant-classification/
 └── README.md
 ```
 
-Note: the `src/` scripts are placeholders for the future reproducible pipeline. At the moment, the main implementation is contained in the notebooks.
+The `src/` directory now contains the first version of a reproducible pipeline. The notebooks are still kept for exploration and earlier experiments.
 
 ---
 
@@ -117,6 +129,60 @@ The following features were extracted from ClinVar records.
 
 ---
 
+## Current Pipeline
+
+### 1. Preprocessing
+
+Development mode:
+
+```bash
+python src/preprocessing.py --mode dev --nrows 10000
+```
+
+Balanced sample mode:
+
+```bash
+python src/preprocessing.py --mode balanced-sample --samples-per-class 1000
+```
+
+The balanced-sample mode reads the raw ClinVar file in chunks, maps clinical significance labels to binary targets, generates variant-level features, and saves the processed dataset to:
+
+```text
+data/processed/clinvar_features.csv
+```
+
+### 2. Training
+
+Train the current Random Forest model:
+
+```bash
+python src/train.py
+```
+
+The trained model is saved to:
+
+```text
+models/random_forest_model.pkl
+```
+
+### 3. Evaluation
+
+Evaluate the saved model:
+
+```bash
+python src/evaluate.py
+```
+
+The evaluation script saves:
+
+```text
+reports/classification_report.txt
+reports/confusion_matrix.png
+reports/probability_metrics.txt
+```
+
+---
+
 ## Models Evaluated
 
 ### Baseline Models
@@ -128,27 +194,31 @@ The following features were extracted from ClinVar records.
 | Baseline 3 | 79% | 0.50 |
 | Baseline 4 | 81% | 0.53 |
 
-### Initial Final Model
+### Current Scripted Model
 
-The current final experiment combines:
+The current scripted model combines:
 
 - Random Forest Classifier
 - OneHotEncoder
 - ColumnTransformer
 - Balanced class weights
 
-This model is an initial version and will likely be improved as the project develops.
+This model is an initial reproducible baseline and will likely be improved as the project develops.
 
 ---
 
 ## Preliminary Results
 
+The latest scripted run used a balanced sample with 1,000 benign/likely benign variants and 1,000 pathogenic/likely pathogenic variants.
+
 | Metric | Value |
 |--------|------:|
-| Accuracy | 86% |
-| Precision (Pathogenic) | 0.67 |
-| Recall (Pathogenic) | 0.54 |
-| F1-score (Pathogenic) | 0.60 |
+| Accuracy | 0.84 |
+| Precision (Pathogenic) | 0.87 |
+| Recall (Pathogenic) | 0.80 |
+| F1-score (Pathogenic) | 0.84 |
+| ROC-AUC | 0.951 |
+| PR-AUC | 0.951 |
 
 These results are preliminary and should be interpreted as a current development checkpoint, not as a finalized benchmark.
 
@@ -196,7 +266,21 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-Because the full data files are large, they are not included directly in the repository. The notebooks currently expect the processed data to be available locally under `data/processed/`.
+Because the full data files are large, they are not included directly in the repository. The notebooks and scripts expect the processed data to be available locally under `data/processed/`.
+
+The scripted pipeline expects the raw ClinVar file at:
+
+```text
+data/raw/variant_summary.txt
+```
+
+To generate a small balanced dataset and run the current model:
+
+```bash
+python src/preprocessing.py --mode balanced-sample --samples-per-class 1000
+python src/train.py
+python src/evaluate.py
+```
 
 ---
 
@@ -204,11 +288,13 @@ Because the full data files are large, they are not included directly in the rep
 
 Planned improvements include:
 
-- Move notebook logic into reusable scripts in `src/`
+- Add model comparison with DummyClassifier and Logistic Regression
+- Add a larger balanced sample for more stable evaluation
 - Add a small sample dataset for quick testing
 - Add clear instructions for downloading or regenerating ClinVar data
-- Improve reproducibility of the training and evaluation pipeline
 - Add more robust validation
+- Add ablation studies by feature group
+- Add permutation importance or SHAP-based interpretability
 - Experiment with XGBoost and LightGBM
 - Explore sequence-based features and k-mer representations
 - Investigate deep learning or transformer-based genomic models
@@ -226,5 +312,3 @@ Computer Science Student interested in:
 - Bioinformatics
 - Genomics
 - Machine Learning
-
-# genetic-variant-classification-
