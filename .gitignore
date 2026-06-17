@@ -24,3 +24,4 @@ data/processed/
 .mypy_cache/
 
 .env
+models/*.pkl

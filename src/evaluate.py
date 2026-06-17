@@ -23,7 +23,8 @@ from sklearn.model_selection import train_test_split
 from config import (
     PROCESSED_CLINVAR_FILE,
     MODELS_DIR,
-    REPORTS_DIR,
+    METRICS_DIR,
+    FIGURES_DIR,
     RANDOM_STATE,
     TARGET_COLUMN,
     CATEGORICAL_FEATURES,
@@ -32,9 +33,11 @@ from config import (
 
 
 MODEL_PATH = MODELS_DIR / "random_forest_model.pkl"
-CLASSIFICATION_REPORT_PATH = REPORTS_DIR / "classification_report.txt"
-CONFUSION_MATRIX_PATH = REPORTS_DIR / "confusion_matrix.png"
-PROBABILITY_METRICS_PATH = REPORTS_DIR / "probability_metrics.txt"
+CLASSIFICATION_REPORT_PATH = METRICS_DIR / "classification_report.txt"
+CONFUSION_MATRIX_PATH = FIGURES_DIR / "confusion_matrix.png"
+PROBABILITY_METRICS_PATH = METRICS_DIR / "probability_metrics.txt"
+FEATURE_IMPORTANCE_PATH = METRICS_DIR / "feature_importance.csv"
+FEATURE_IMPORTANCE_FIGURE_PATH = FIGURES_DIR / "feature_importance.png"
 
 
 def load_test_data() -> tuple[pd.DataFrame, pd.Series]:
@@ -102,8 +105,40 @@ def print_probability_metrics(y_test: pd.Series, probabilities: pd.Series) -> No
     print(f"Saved probability metrics to: {PROBABILITY_METRICS_PATH}")
 
 
+def save_feature_importance(model) -> None:
+    """Save Random Forest feature importance as a CSV file and bar plot."""
+    preprocessor = model.named_steps["preprocessor"]
+    classifier = model.named_steps["classifier"]
+
+    feature_names = preprocessor.get_feature_names_out()
+    importances = classifier.feature_importances_
+
+    importance_df = pd.DataFrame(
+        {
+            "feature": feature_names,
+            "importance": importances,
+        }
+    ).sort_values("importance", ascending=False)
+
+    importance_df.to_csv(FEATURE_IMPORTANCE_PATH, index=False)
+
+    top_features = importance_df.head(15).sort_values("importance")
+
+    plt.figure(figsize=(9, 6))
+    plt.barh(top_features["feature"], top_features["importance"])
+    plt.xlabel("Importance")
+    plt.title("Top Random Forest Feature Importances")
+    plt.tight_layout()
+    plt.savefig(FEATURE_IMPORTANCE_FIGURE_PATH, dpi=150)
+    plt.close()
+
+    print(f"Saved feature importance to: {FEATURE_IMPORTANCE_PATH}")
+    print(f"Saved feature importance plot to: {FEATURE_IMPORTANCE_FIGURE_PATH}")
+
+
 def main() -> None:
-    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    METRICS_DIR.mkdir(parents=True, exist_ok=True)
+    FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
     model = joblib.load(MODEL_PATH)
     X_test, y_test = load_test_data()
@@ -114,6 +149,7 @@ def main() -> None:
     save_classification_report(y_test, predictions)
     save_confusion_matrix(y_test, predictions)
     print_probability_metrics(y_test, probabilities)
+    save_feature_importance(model)
 
 
 if __name__ == "__main__":

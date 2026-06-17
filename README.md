@@ -20,7 +20,7 @@ The current workflow includes:
 - Data preprocessing
 - Feature engineering
 - Balanced sample generation
-- Random Forest model training
+- Model comparison
 - Initial model evaluation
 - Probability-based evaluation metrics
 
@@ -74,16 +74,23 @@ genetic-variant-classification/
 │
 ├── reports/
 │   ├── initial_report.md
-│   ├── literature_triage.md
-│   ├── classification_report.txt
-│   ├── confusion_matrix.png
-│   ├── probability_metrics.txt
-│   ├── feature_importance.csv
-│   └── feature_importance.png
+│   └── literature_triage.md
 │
 ├── models/
+│   ├── dummy_model.pkl
 │   ├── final_model.pkl
+│   ├── logistic_regression_model.pkl
 │   └── random_forest_model.pkl
+│
+├── results/
+│   ├── figures/
+│   │   ├── confusion_matrix.png
+│   │   └── feature_importance.png
+│   └── metrics/
+│       ├── classification_report.txt
+│       ├── feature_importance.csv
+│       ├── model_comparison.csv
+│       └── probability_metrics.txt
 │
 ├── src/
 │   ├── config.py
@@ -97,6 +104,8 @@ genetic-variant-classification/
 ```
 
 The `src/` directory now contains the first version of a reproducible pipeline. The notebooks are still kept for exploration and earlier experiments.
+
+The `reports/` directory is used for written analysis and manually curated report artifacts. Automatically generated metrics and figures are saved under `results/metrics/` and `results/figures/`.
 
 ---
 
@@ -153,16 +162,30 @@ data/processed/clinvar_features.csv
 
 ### 2. Training
 
-Train the current Random Forest model:
+Train the current comparison models:
 
 ```bash
 python src/train.py
 ```
 
-The trained model is saved to:
+The training script currently compares:
+
+- DummyClassifier
+- Logistic Regression
+- Random Forest Classifier
+
+The trained models are saved to:
 
 ```text
+models/dummy_model.pkl
+models/logistic_regression_model.pkl
 models/random_forest_model.pkl
+```
+
+The model comparison table is saved to:
+
+```text
+results/metrics/model_comparison.csv
 ```
 
 ### 3. Evaluation
@@ -176,34 +199,33 @@ python src/evaluate.py
 The evaluation script saves:
 
 ```text
-reports/classification_report.txt
-reports/confusion_matrix.png
-reports/probability_metrics.txt
+results/metrics/classification_report.txt
+results/metrics/feature_importance.csv
+results/metrics/probability_metrics.txt
+results/figures/confusion_matrix.png
+results/figures/feature_importance.png
 ```
 
 ---
 
 ## Models Evaluated
 
-### Baseline Models
-
 | Model | Accuracy | F1-score (Pathogenic) |
 |-------|---------:|----------------------:|
-| Baseline 1 | 84% | 0.53 |
-| Baseline 2 | 77% | 0.44 |
-| Baseline 3 | 79% | 0.50 |
-| Baseline 4 | 81% | 0.53 |
+| DummyClassifier | 0.5000 | 0.0000 |
+| Logistic Regression | 0.9275 | 0.9280 |
+| Random Forest | 0.8425 | 0.8355 |
 
-### Current Scripted Model
+### Current Scripted Models
 
-The current scripted model combines:
+The current scripted models use a shared scikit-learn preprocessing pipeline based on:
 
-- Random Forest Classifier
 - OneHotEncoder
 - ColumnTransformer
-- Balanced class weights
+- categorical feature encoding
+- numeric feature passthrough
 
-This model is an initial reproducible baseline and will likely be improved as the project develops.
+Logistic Regression and Random Forest use balanced class weights. These models are initial reproducible baselines and will likely be improved as the project develops.
 
 ---
 
@@ -211,14 +233,11 @@ This model is an initial reproducible baseline and will likely be improved as th
 
 The latest scripted run used a balanced sample with 1,000 benign/likely benign variants and 1,000 pathogenic/likely pathogenic variants.
 
-| Metric | Value |
-|--------|------:|
-| Accuracy | 0.84 |
-| Precision (Pathogenic) | 0.87 |
-| Recall (Pathogenic) | 0.80 |
-| F1-score (Pathogenic) | 0.84 |
-| ROC-AUC | 0.951 |
-| PR-AUC | 0.951 |
+| Model | Accuracy | Precision (Pathogenic) | Recall (Pathogenic) | F1-score (Pathogenic) | ROC-AUC | PR-AUC |
+|-------|---------:|------------------------:|---------------------:|----------------------:|--------:|-------:|
+| DummyClassifier | 0.5000 | 0.0000 | 0.0000 | 0.0000 | 0.5000 | 0.5000 |
+| Logistic Regression | 0.9275 | 0.9212 | 0.9350 | 0.9280 | 0.9761 | 0.9729 |
+| Random Forest | 0.8425 | 0.8743 | 0.8000 | 0.8355 | 0.9509 | 0.9506 |
 
 These results are preliminary and should be interpreted as a current development checkpoint, not as a finalized benchmark.
 
@@ -288,7 +307,6 @@ python src/evaluate.py
 
 Planned improvements include:
 
-- Add model comparison with DummyClassifier and Logistic Regression
 - Add a larger balanced sample for more stable evaluation
 - Add a small sample dataset for quick testing
 - Add clear instructions for downloading or regenerating ClinVar data
