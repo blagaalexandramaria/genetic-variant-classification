@@ -93,13 +93,13 @@ def load_balanced_sample(samples_per_class: int) -> pd.DataFrame:
         if benign_count >= samples_per_class and pathogenic_count >= samples_per_class:
             break
 
-        if benign_count == 0 or pathogenic_count == 0:
-            raise ValueError("Could not collect both classes from the ClinVar file.")
+    if benign_count == 0 or pathogenic_count == 0:
+        raise ValueError("Could not collect both classes from the ClinVar file.")
 
-        df = pd.concat(benign_chunks +pathogenic_chunks, ignore_index=True)
+    df = pd.concat(benign_chunks + pathogenic_chunks, ignore_index=True)
 
-        # Shuffle so classes are not grouped together
-        df = df.sample(frac=1, random_state=42).reset_index(drop=True)
+    # Shuffle so classes are not grouped together.
+    df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
     return df
     

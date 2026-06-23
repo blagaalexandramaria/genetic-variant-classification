@@ -87,6 +87,7 @@ genetic-variant-classification/
 │   │   ├── confusion_matrix.png
 │   │   └── feature_importance.png
 │   └── metrics/
+│       ├── ablation_study.csv
 │       ├── classification_report.txt
 │       ├── feature_importance.csv
 │       ├── model_comparison.csv
@@ -97,7 +98,8 @@ genetic-variant-classification/
 │   ├── features.py
 │   ├── preprocessing.py
 │   ├── train.py
-│   └── evaluate.py
+│   ├── evaluate.py
+│   └── ablation.py
 │
 ├── requirements.txt
 └── README.md
@@ -151,7 +153,7 @@ python src/preprocessing.py --mode dev --nrows 10000
 Balanced sample mode:
 
 ```bash
-python src/preprocessing.py --mode balanced-sample --samples-per-class 1000
+python src/preprocessing.py --mode balanced-sample --samples-per-class 10000
 ```
 
 The balanced-sample mode reads the raw ClinVar file in chunks, maps clinical significance labels to binary targets, generates variant-level features, and saves the processed dataset to:
@@ -206,6 +208,20 @@ results/figures/confusion_matrix.png
 results/figures/feature_importance.png
 ```
 
+### 4. Ablation Study
+
+Run the feature-group ablation study:
+
+```bash
+python src/ablation.py
+```
+
+The ablation script compares Logistic Regression performance across structural, genomic, clinical metadata, and full feature sets. Results are saved to:
+
+```text
+results/metrics/ablation_study.csv
+```
+
 ---
 
 ## Models Evaluated
@@ -213,8 +229,8 @@ results/figures/feature_importance.png
 | Model | Accuracy | F1-score (Pathogenic) |
 |-------|---------:|----------------------:|
 | DummyClassifier | 0.5000 | 0.0000 |
-| Logistic Regression | 0.9275 | 0.9280 |
-| Random Forest | 0.8425 | 0.8355 |
+| Logistic Regression | 0.9183 | 0.9185 |
+| Random Forest | 0.8175 | 0.7925 |
 
 ### Current Scripted Models
 
@@ -231,29 +247,47 @@ Logistic Regression and Random Forest use balanced class weights. These models a
 
 ## Preliminary Results
 
-The latest scripted run used a balanced sample with 1,000 benign/likely benign variants and 1,000 pathogenic/likely pathogenic variants.
+The latest scripted run used a balanced sample with 10,000 benign/likely benign variants and 10,000 pathogenic/likely pathogenic variants.
 
 | Model | Accuracy | Precision (Pathogenic) | Recall (Pathogenic) | F1-score (Pathogenic) | ROC-AUC | PR-AUC |
 |-------|---------:|------------------------:|---------------------:|----------------------:|--------:|-------:|
 | DummyClassifier | 0.5000 | 0.0000 | 0.0000 | 0.0000 | 0.5000 | 0.5000 |
-| Logistic Regression | 0.9275 | 0.9212 | 0.9350 | 0.9280 | 0.9761 | 0.9729 |
-| Random Forest | 0.8425 | 0.8743 | 0.8000 | 0.8355 | 0.9509 | 0.9506 |
+| Logistic Regression | 0.9183 | 0.9160 | 0.9210 | 0.9185 | 0.9726 | 0.9728 |
+| Random Forest | 0.8175 | 0.9183 | 0.6970 | 0.7925 | 0.9268 | 0.9287 |
+
+In this preliminary run, Logistic Regression outperformed Random Forest across accuracy, pathogenic F1-score, ROC-AUC, and PR-AUC. This suggests that a simpler linear baseline is currently more effective for the engineered feature set than the Random Forest configuration.
 
 These results are preliminary and should be interpreted as a current development checkpoint, not as a finalized benchmark.
 
 ---
 
+## Ablation Study
+
+The ablation study evaluates how different feature groups contribute to pathogenicity prediction using Logistic Regression.
+
+| Feature Set | Accuracy | Precision (Pathogenic) | Recall (Pathogenic) | F1-score (Pathogenic) | ROC-AUC | PR-AUC |
+|-------------|---------:|------------------------:|---------------------:|----------------------:|--------:|-------:|
+| Structural only | 0.6025 | 0.7863 | 0.2815 | 0.4146 | 0.6066 | 0.6041 |
+| Structural + genomic | 0.9003 | 0.8817 | 0.9245 | 0.9026 | 0.9605 | 0.9575 |
+| Structural + clinical metadata | 0.7673 | 0.9102 | 0.5930 | 0.7181 | 0.8188 | 0.8248 |
+| Full feature set | 0.9183 | 0.9160 | 0.9210 | 0.9185 | 0.9726 | 0.9728 |
+
+The results suggest that structural variant features alone are not sufficient for strong classification performance. Adding genomic context, especially gene-level information, substantially improves performance. Clinical metadata also improves over structural features alone, but these features should be interpreted carefully because they may reflect ClinVar annotation and review patterns rather than purely biological signal.
+
+---
+
 ## Feature Importance
 
-The most influential predictors identified by the current model include:
+The most influential predictors identified by the current Random Forest model include:
 
-- Mutation type
+- Review status categories
+- Mutation type, especially SNV and deletion indicators
 - Length difference
 - Reference allele length
-- Alternate allele length
-- Deletion mutations
+- Gene-level features such as BRCA1 and BRCA2
+- Origin metadata
 
-Gene-level information also contributed to prediction performance, suggesting that both variant structure and biological context may be relevant for pathogenicity classification.
+These feature importances should be interpreted carefully. Some predictors, such as mutation type and allele length, may reflect variant-level biological structure, while metadata fields such as ReviewStatus may also capture ClinVar-specific annotation and review patterns.
 
 ---
 
@@ -293,10 +327,10 @@ The scripted pipeline expects the raw ClinVar file at:
 data/raw/variant_summary.txt
 ```
 
-To generate a small balanced dataset and run the current model:
+To generate the current balanced dataset and run the pipeline:
 
 ```bash
-python src/preprocessing.py --mode balanced-sample --samples-per-class 1000
+python src/preprocessing.py --mode balanced-sample --samples-per-class 10000
 python src/train.py
 python src/evaluate.py
 ```
@@ -307,11 +341,10 @@ python src/evaluate.py
 
 Planned improvements include:
 
-- Add a larger balanced sample for more stable evaluation
+- Add a larger or repeated balanced sampling strategy for more stable evaluation
 - Add a small sample dataset for quick testing
 - Add clear instructions for downloading or regenerating ClinVar data
 - Add more robust validation
-- Add ablation studies by feature group
 - Add permutation importance or SHAP-based interpretability
 - Experiment with XGBoost and LightGBM
 - Explore sequence-based features and k-mer representations
