@@ -2,14 +2,7 @@ import pandas as pd
 
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    average_precision_score,
-)
+from metrics import evaluate_classification_model
 
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
@@ -103,35 +96,6 @@ def build_model(categorical_features: list[str], numeric_features: list[str]) ->
         ]
     )
 
-def evaluate_model(model: Pipeline, X_test: pd.DataFrame, y_test: pd.Series) -> dict[str, float]:
-    """Evaluate a trained model using classification and probability metrics."""
-    predictions = model.predict(X_test)
-    probabilities = model.predict_proba(X_test)[:, 1]
-
-    return {
-        "accuracy": accuracy_score(y_test, predictions),
-        "precision_pathogenic": precision_score(
-            y_test,
-            predictions,
-            pos_label=1,
-            zero_division=0,
-        ),
-        "recall_pathogenic": recall_score(
-            y_test,
-            predictions,
-            pos_label=1,
-            zero_division=0,
-        ),
-        "f1_pathogenic": f1_score(
-            y_test,
-            predictions,
-            pos_label=1,
-            zero_division=0,
-        ),
-        "roc_auc": roc_auc_score(y_test, probabilities),
-        "pr_auc": average_precision_score(y_test, probabilities),
-    }
-
 def main() -> None:
     df = pd.read_csv(PROCESSED_CLINVAR_FILE)
 
@@ -163,7 +127,7 @@ def main() -> None:
 
         model.fit(X_train, y_train)
 
-        metrics = evaluate_model(model, X_test, y_test)
+        metrics = evaluate_classification_model(model, X_test, y_test)
         metrics["feature_set"] = feature_set_name
         results.append(metrics)
 

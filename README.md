@@ -78,10 +78,7 @@ genetic-variant-classification/
 │   └── literature_triage.md
 │
 ├── models/
-│   ├── dummy_model.pkl
-│   ├── final_model.pkl
-│   ├── logistic_regression_model.pkl
-│   └── random_forest_model.pkl
+│   └── generated model artifacts
 │
 ├── results/
 │   ├── figures/
@@ -100,7 +97,8 @@ genetic-variant-classification/
 │   ├── preprocessing.py
 │   ├── train.py
 │   ├── evaluate.py
-│   └── ablation.py
+│   ├── ablation.py
+│   └── metrics.py
 │
 ├── requirements.txt
 └── README.md
@@ -108,7 +106,7 @@ genetic-variant-classification/
 
 The `src/` directory now contains the first version of a reproducible pipeline. The notebooks are still kept for exploration and earlier experiments.
 
-The `reports/` directory is used for written analysis and manually curated report artifacts. Automatically generated metrics and figures are saved under `results/metrics/` and `results/figures/`.
+The `reports/` directory is used for written analysis and manually curated report artifacts. Automatically generated metrics and figures are saved under `results/metrics/` and `results/figures/`. Model artifacts are generated locally under `models/` and are not intended to be committed by default.
 
 ---
 
@@ -177,7 +175,7 @@ The training script currently compares:
 - Logistic Regression
 - Random Forest Classifier
 
-The trained models are saved to:
+The trained models are generated locally under:
 
 ```text
 models/dummy_model.pkl
