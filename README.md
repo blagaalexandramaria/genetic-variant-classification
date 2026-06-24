@@ -23,6 +23,7 @@ The current workflow includes:
 - Model comparison
 - Initial model evaluation
 - Probability-based evaluation metrics
+- Logistic Regression coefficient analysis
 
 The goal is to explore how genomic and clinical features can contribute to variant pathogenicity prediction.
 
@@ -85,11 +86,11 @@ genetic-variant-classification/
 ├── results/
 │   ├── figures/
 │   │   ├── confusion_matrix.png
-│   │   └── feature_importance.png
+│   │   └── logistic_regression_coefficients.png
 │   └── metrics/
 │       ├── ablation_study.csv
 │       ├── classification_report.txt
-│       ├── feature_importance.csv
+│       ├── logistic_regression_coefficients.csv
 │       ├── model_comparison.csv
 │       └── probability_metrics.txt
 │
@@ -198,14 +199,14 @@ Evaluate the saved model:
 python src/evaluate.py
 ```
 
-The evaluation script saves:
+The evaluation script currently evaluates the Logistic Regression model, which is the strongest model in the current comparison. It saves:
 
 ```text
 results/metrics/classification_report.txt
-results/metrics/feature_importance.csv
+results/metrics/logistic_regression_coefficients.csv
 results/metrics/probability_metrics.txt
 results/figures/confusion_matrix.png
-results/figures/feature_importance.png
+results/figures/logistic_regression_coefficients.png
 ```
 
 ### 4. Ablation Study
@@ -276,18 +277,25 @@ The results suggest that structural variant features alone are not sufficient fo
 
 ---
 
-## Feature Importance
+## Model Interpretation
 
-The most influential predictors identified by the current Random Forest model include:
+Because Logistic Regression is the current primary model, interpretation is based on model coefficients rather than Random Forest feature importance.
 
-- Review status categories
-- Mutation type, especially SNV and deletion indicators
-- Length difference
-- Reference allele length
-- Gene-level features such as BRCA1 and BRCA2
-- Origin metadata
+The coefficient analysis is saved to:
 
-These feature importances should be interpreted carefully. Some predictors, such as mutation type and allele length, may reflect variant-level biological structure, while metadata fields such as ReviewStatus may also capture ClinVar-specific annotation and review patterns.
+```text
+results/metrics/logistic_regression_coefficients.csv
+results/figures/logistic_regression_coefficients.png
+```
+
+The largest absolute coefficients currently include several gene-level and metadata-derived features. These coefficients should be interpreted carefully:
+
+- positive coefficients increase the model's predicted probability of the pathogenic class;
+- negative coefficients decrease the model's predicted probability of the pathogenic class;
+- gene-level coefficients may reflect strong ClinVar-specific patterns in the current dataset;
+- metadata-derived coefficients may reflect annotation and review patterns rather than purely biological signal.
+
+Random Forest feature importance was used in earlier exploratory runs, but it is no longer the primary interpretation artifact for the current scripted evaluation.
 
 ---
 

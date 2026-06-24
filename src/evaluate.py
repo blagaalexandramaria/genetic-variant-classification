@@ -32,12 +32,12 @@ from config import (
 )
 
 
-MODEL_PATH = MODELS_DIR / "random_forest_model.pkl"
+MODEL_PATH = MODELS_DIR / "logistic_regression_model.pkl"
 CLASSIFICATION_REPORT_PATH = METRICS_DIR / "classification_report.txt"
 CONFUSION_MATRIX_PATH = FIGURES_DIR / "confusion_matrix.png"
 PROBABILITY_METRICS_PATH = METRICS_DIR / "probability_metrics.txt"
-FEATURE_IMPORTANCE_PATH = METRICS_DIR / "feature_importance.csv"
-FEATURE_IMPORTANCE_FIGURE_PATH = FIGURES_DIR / "feature_importance.png"
+COEFFICIENTS_PATH = METRICS_DIR / "logistic_regression_coefficients.csv"
+COEFFICIENTS_FIGURE_PATH = FIGURES_DIR / "logistic_regression_coefficients.png"
 
 
 def load_test_data() -> tuple[pd.DataFrame, pd.Series]:
@@ -104,37 +104,45 @@ def print_probability_metrics(y_test: pd.Series, probabilities: pd.Series) -> No
     print(metrics, end="")
     print(f"Saved probability metrics to: {PROBABILITY_METRICS_PATH}")
 
-
-def save_feature_importance(model) -> None:
-    """Save Random Forest feature importance as a CSV file and bar plot."""
+def save_logistic_regression_coefficients(model) -> None:
+    """Save Logistic Regression coefficients as a CSV file and bar plot."""
     preprocessor = model.named_steps["preprocessor"]
     classifier = model.named_steps["classifier"]
 
     feature_names = preprocessor.get_feature_names_out()
-    importances = classifier.feature_importances_
+    coefficients = classifier.coef_[0]
 
-    importance_df = pd.DataFrame(
+    coefficients_df = pd.DataFrame(
         {
             "feature": feature_names,
-            "importance": importances,
+            "coefficient": coefficients,
+            "absolute_coefficient": abs(coefficients),
         }
-    ).sort_values("importance", ascending=False)
+    ).sort_values("absolute_coefficient", ascending=False)
 
-    importance_df.to_csv(FEATURE_IMPORTANCE_PATH, index=False)
+    coefficients_df.to_csv(COEFFICIENTS_PATH, index=False)
 
-    top_features = importance_df.head(15).sort_values("importance")
+    top_coefficients = coefficients_df.head(15).sort_values("coefficient")
 
     plt.figure(figsize=(9, 6))
-    plt.barh(top_features["feature"], top_features["importance"])
-    plt.xlabel("Importance")
-    plt.title("Top Random Forest Feature Importances")
+    colors = [
+        "tab:red" if value > 0 else "tab:blue"
+        for value in top_coefficients["coefficient"]
+    ]
+
+    plt.barh(
+        top_coefficients["feature"],
+        top_coefficients["coefficient"],
+        color=colors,
+    )
+    plt.xlabel("Coefficient")
+    plt.title("Top Logistic Regression Coefficients")
     plt.tight_layout()
-    plt.savefig(FEATURE_IMPORTANCE_FIGURE_PATH, dpi=150)
+    plt.savefig(COEFFICIENTS_FIGURE_PATH, dpi=150)
     plt.close()
 
-    print(f"Saved feature importance to: {FEATURE_IMPORTANCE_PATH}")
-    print(f"Saved feature importance plot to: {FEATURE_IMPORTANCE_FIGURE_PATH}")
-
+    print(f"Saved Logistic Regression coefficients to: {COEFFICIENTS_PATH}")
+    print(f"Saved coefficient plot to: {COEFFICIENTS_FIGURE_PATH}")
 
 def main() -> None:
     METRICS_DIR.mkdir(parents=True, exist_ok=True)
@@ -149,7 +157,7 @@ def main() -> None:
     save_classification_report(y_test, predictions)
     save_confusion_matrix(y_test, predictions)
     print_probability_metrics(y_test, probabilities)
-    save_feature_importance(model)
+    save_logistic_regression_coefficients(model)
 
 
 if __name__ == "__main__":
