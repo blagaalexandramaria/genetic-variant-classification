@@ -523,4 +523,4 @@ Other approaches worth investigating include permutation importance, SHAP-based 
 
 **Alexandra Blaga**
 
-Computer Science student with interests in artificial intelligence, machine learning, bioinformatics, and genomics.
+Computer Science student.
