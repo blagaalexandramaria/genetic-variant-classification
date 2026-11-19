@@ -105,7 +105,7 @@ The evaluation generates confusion matrices, ROC curves, and Precision–Recall 
 
 Logistic Regression coefficients describe associations between encoded predictors and the model's predicted log-odds. Random Forest impurity-based importance measures how much features contribute to tree splitting decisions. Neither method establishes biological causality; interpretation is affected by encoding, correlated predictors, and, for impurity-based importance, feature cardinality.
 
-![Logistic Regression coefficients in the Model Analysis interface](reports/screenshots/feature-importance.jpeg)
+![Logistic Regression coefficients in the Model Analysis interface](reports/screenshots/feature-importance.png)
 
 ### Ablation study
 
