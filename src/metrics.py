@@ -7,6 +7,7 @@ from sklearn.metrics import (
     precision_score,
     recall_score,
     roc_auc_score,
+    confusion_matrix,
 )
 from sklearn.pipeline import Pipeline
 
@@ -22,6 +23,9 @@ def evaluate_classification_model(
         probabilities = model.predict_proba(X_test)[:, 1]
     else:
         probabilities = predictions
+    
+    cm = confusion_matrix(y_test, predictions, labels=[0, 1])
+    tn, fp, fn, tp = cm.ravel()
 
     return {
         "accuracy": accuracy_score(y_test, predictions),
@@ -45,4 +49,8 @@ def evaluate_classification_model(
         ),
         "roc_auc": roc_auc_score(y_test, probabilities),
         "pr_auc": average_precision_score(y_test, probabilities),
+        "true_negative": int(tn),
+        "false_positive": int(fp),
+        "false_negative": int(fn),
+        "true_positive": int(tp),
     }

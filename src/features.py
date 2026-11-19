@@ -15,16 +15,14 @@ def normalize_allele(value: object) -> str:
     return value
 
 
-def allele_length(value: object) -> int:
-    """Compute allele length after normalizing missing or placeholder values."""
-    return len(normalize_allele(value))
-
-
 def classify_mutation_type(ref: object, alt: object) -> str:
-    """Classify a variant as SNV, Deletion, Insertion, or Other."""
+    # Classify a variant as SNV, Deletion, Insertion, or Other. 
     ref = normalize_allele(ref)
     alt = normalize_allele(alt)
 
+    if not ref or not alt or ref == alt:
+        return "Other"
+    
     if len(ref) == 1 and len(alt) == 1:
         return "SNV"
     

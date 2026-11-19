@@ -33,7 +33,6 @@ CATEGORICAL_FEATURES = [
     "GeneSymbol",
     "mutation_type",
     "OriginSimple",
-    "ReviewStatus",
 ]
 
 NUMERIC_FEATURES = [

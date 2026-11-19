@@ -1,371 +1,527 @@
 # Genetic Variant Classification Using ClinVar
 
-## Project Status
+This project explores the classification of genetic variants as benign or pathogenic using machine learning and data from ClinVar.
 
-This project is currently in an early development stage.
+It includes a Python pipeline for preparing the dataset, training models, and evaluating their performance. A desktop application built with CustomTkinter provides access to predictions, model comparisons, and experimental results.
 
-The current version includes exploratory notebooks and an initial reproducible Python pipeline for preprocessing, training, and evaluation using ClinVar-derived data.
-
-The results reported here are preliminary and are intended to document the current progress of the project.
-
----
+The project is a research prototype. Its predictions have not been clinically validated and should not be used for medical decisions.
 
 ## Overview
 
-This project investigates the classification of human genetic variants as **benign** or **pathogenic** using Machine Learning techniques and data derived from the ClinVar database.
+The main goal is to examine how well common machine learning algorithms can classify genetic variants using a relatively small set of genomic and structural features.
 
-The current workflow includes:
+The project covers:
 
-- Data exploration
-- Data preprocessing
+- Data exploration and preprocessing
 - Feature engineering
-- Balanced sample generation
-- Model comparison
-- Initial model evaluation
-- Probability-based evaluation metrics
-- Logistic Regression coefficient analysis
+- Logistic Regression and Random Forest classification
+- Model evaluation and comparison
+- Feature importance analysis
+- Ablation experiments
+- Gene-based evaluation
+- A graphical interface for predictions and model analysis
 
-The goal is to explore how genomic and clinical features can contribute to variant pathogenicity prediction.
+Three models were evaluated: Dummy Classifier, Logistic Regression, and Random Forest.
 
----
+Logistic Regression achieved the best overall results in the main evaluation, although Random Forest had higher precision for the pathogenic class.
 
 ## Dataset
 
 ### Source
 
-- ClinVar Database
+The data comes from ClinVar, a public database maintained by the National Center for Biotechnology Information (NCBI).
 
-### Processed Dataset
+The preprocessing pipeline uses the `variant_summary.txt` file and selects variants associated with the GRCh38 genome assembly.
 
-The experiments use an engineered dataset generated from ClinVar records:
+Four clinical significance labels are included:
 
-```text
-clinvar_features.csv
-```
-
-The full raw and processed datasets are not intended to be committed to GitHub because of their size. The repository is expected to include the code, notebooks, reports, and generated outputs, while large data files should be downloaded or regenerated separately.
-
-The current preprocessing script supports:
-
-- a development mode for quick testing on a small number of rows;
-- a balanced-sample mode that reads the large ClinVar file in chunks and collects an equal number of benign and pathogenic variants.
-
-### Target Classes
-
-| Clinical Significance | Target |
-|----------------------|-------:|
+| Clinical significance | Target |
+|---|---:|
 | Benign | 0 |
 | Likely benign | 0 |
 | Pathogenic | 1 |
 | Likely pathogenic | 1 |
 
----
+Other clinical significance categories are excluded.
 
-## Current Project Structure
+### Preprocessing
 
-```text
-genetic-variant-classification/
-│
-├── notebooks/
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_preprocessing.ipynb
-│   ├── 03_feature_engineering.ipynb
-│   ├── 04_baseline_models.ipynb
-│   └── 05_final_model.ipynb
-│
-├── reports/
-│   ├── initial_report.md
-│   └── literature_triage.md
-│
-├── models/
-│   └── generated model artifacts
-│
-├── results/
-│   ├── figures/
-│   │   ├── confusion_matrix.png
-│   │   └── logistic_regression_coefficients.png
-│   └── metrics/
-│       ├── ablation_study.csv
-│       ├── classification_report.txt
-│       ├── logistic_regression_coefficients.csv
-│       ├── model_comparison.csv
-│       └── probability_metrics.txt
-│
-├── src/
-│   ├── config.py
-│   ├── features.py
-│   ├── preprocessing.py
-│   ├── train.py
-│   ├── evaluate.py
-│   ├── ablation.py
-│   └── metrics.py
-│
-├── requirements.txt
-└── README.md
-```
+The raw ClinVar file is processed in chunks to avoid loading the entire dataset into memory.
 
-The `src/` directory now contains the first version of a reproducible pipeline. The notebooks are still kept for exploration and earlier experiments.
+The preprocessing pipeline filters the records, assigns binary labels, removes duplicate variants, checks for conflicting classifications, and generates the features used during training.
 
-The `reports/` directory is used for written analysis and manually curated report artifacts. Automatically generated metrics and figures are saved under `results/metrics/` and `results/figures/`. Model artifacts are generated locally under `models/` and are not intended to be committed by default.
+Variants are identified using their chromosome, genomic position, reference allele, and alternate allele.
 
----
+The preprocessing analysis identified 1,598,540 unique eligible variants before sampling.
 
-## Feature Engineering
+The final dataset contains 100,000 variants:
 
-The following features were extracted from ClinVar records.
+| Class | Variants |
+|---|---:|
+| Benign | 50,000 |
+| Pathogenic | 50,000 |
+| Total | 100,000 |
 
-### Structural Features
+The classes were balanced intentionally to make model comparisons easier. This distribution does not reflect the natural frequency of pathogenic variants.
 
-- Reference allele length
-- Alternate allele length
-- Length difference
-
-### Mutation Features
-
-- Mutation type
-- SNV indicator
-- Deletion indicator
-- Insertion indicator
-
-### Genomic Features
-
-- Chromosome
-- GeneSymbol
-
-### Clinical Features
-
-- OriginSimple
-- ReviewStatus
-
----
-
-## Current Pipeline
-
-### 1. Preprocessing
-
-Development mode:
-
-```bash
-python src/preprocessing.py --mode dev --nrows 10000
-```
-
-Balanced sample mode:
-
-```bash
-python src/preprocessing.py --mode balanced-sample --samples-per-class 10000
-```
-
-The balanced-sample mode reads the raw ClinVar file in chunks, maps clinical significance labels to binary targets, generates variant-level features, and saves the processed dataset to:
+The processed dataset is saved as:
 
 ```text
 data/processed/clinvar_features.csv
 ```
 
-### 2. Training
+The raw and processed datasets are kept locally because of their size.
 
-Train the current comparison models:
+## Features
 
-```bash
-python src/train.py
+The models use seven input features.
+
+| Feature | Type | Description |
+|---|---|---|
+| Chromosome | Categorical | Chromosome containing the variant |
+| GeneSymbol | Categorical | Gene associated with the variant |
+| mutation_type | Categorical | Mutation category |
+| OriginSimple | Categorical | Variant-origin metadata |
+| ref_length | Numerical | Reference allele length |
+| alt_length | Numerical | Alternate allele length |
+| length_difference | Numerical | Difference between alternate and reference allele lengths |
+
+Mutation types are derived from the reference and alternate alleles and grouped into SNV, insertion, deletion, or other.
+
+`ReviewStatus` was excluded from the final predictor set to reduce the risk of learning patterns associated with ClinVar's annotation process.
+
+The models do not use sequence conservation, population allele frequencies, functional annotations, or protein-level effects.
+
+## Project Structure
+
+```text
+genetic-variant-classification/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py
+│   ├── styles.py
+│   ├── dashboard.py
+│   ├── prediction.py
+│   └── analysis.py
+│
+├── data/
+│   ├── raw/
+│   │   └── variant_summary.txt
+│   └── processed/
+│       └── clinvar_features.csv
+│
+├── notebooks/
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_model_evaluation.ipynb
+│   └── 03_experimental_analysis.ipynb
+│
+├── src/
+│   ├── config.py
+│   ├── preprocessing.py
+│   ├── features.py
+│   ├── train.py
+│   ├── metrics.py
+│   ├── evaluate.py
+│   ├── ablation.py
+│   └── gene_split_evaluation.py
+│
+├── models/
+│   ├── dummy_model.pkl
+│   ├── logistic_regression_model.pkl
+│   └── random_forest_model.pkl
+│
+├── results/
+│   ├── figures/
+│   └── metrics/
+│       ├── model_comparison.csv
+│       ├── ablation_study.csv
+│       ├── gene_split_comparison.csv
+│       └── gene_split_summary.csv
+│
+├── reports/
+│
+├── requirements.txt
+└── README.md
 ```
 
-The training script currently compares:
+The `src/` directory contains the preprocessing, training, and evaluation scripts. The desktop application is implemented in `app/`.
 
-- DummyClassifier
+The notebooks document the analyses, while generated metrics and figures are stored in `results/`.
+
+Trained models are saved in `models/`.
+
+## Machine Learning Pipeline
+
+### Preprocessing
+
+The preprocessing script supports a development mode for testing on smaller datasets and a balanced-sampling mode for generating the training dataset.
+
+Development mode:
+
+```bash
+python3 -m src.preprocessing --mode dev --nrows 10000
+```
+
+Generate a balanced dataset with 50,000 variants per class:
+
+```bash
+python3 -m src.preprocessing --mode balanced-sample --samples-per-class 50000
+```
+
+The output is saved to `data/processed/clinvar_features.csv`.
+
+### Training
+
+Three models are trained using scikit-learn:
+
+- Dummy Classifier, used as a baseline
 - Logistic Regression
-- Random Forest Classifier
+- Random Forest
 
-The trained models are generated locally under:
+Categorical variables are encoded with `OneHotEncoder`, while numerical variables are passed through the preprocessing pipeline.
 
-```text
-models/dummy_model.pkl
-models/logistic_regression_model.pkl
-models/random_forest_model.pkl
-```
+Logistic Regression and Random Forest use balanced class weights.
 
-The model comparison table is saved to:
+The dataset is divided into training and testing subsets using a stratified 80/20 split.
 
-```text
-results/metrics/model_comparison.csv
-```
+| Subset | Variants |
+|---|---:|
+| Training | 80,000 |
+| Testing | 20,000 |
 
-### 3. Evaluation
-
-Evaluate the saved model:
+Run the training script:
 
 ```bash
-python src/evaluate.py
+python3 -m src.train
 ```
 
-The evaluation script currently evaluates the Logistic Regression model, which is the strongest model in the current comparison. It saves:
+The trained models are saved in `models/`, and the comparison results are written to `results/metrics/model_comparison.csv`.
 
-```text
-results/metrics/classification_report.txt
-results/metrics/logistic_regression_coefficients.csv
-results/metrics/probability_metrics.txt
-results/figures/confusion_matrix.png
-results/figures/logistic_regression_coefficients.png
-```
+### Evaluation
 
-### 4. Ablation Study
+Model performance is measured using accuracy, precision, recall, F1-score, ROC-AUC, and PR-AUC.
 
-Run the feature-group ablation study:
+Precision, recall, and F1-score are calculated for the pathogenic class.
+
+The evaluation also generates confusion matrices, ROC curves, Precision–Recall curves, and model interpretation results.
+
+Run:
 
 ```bash
-python src/ablation.py
+python3 -m src.evaluate
 ```
 
-The ablation script compares Logistic Regression performance across structural, genomic, clinical metadata, and full feature sets. Results are saved to:
+Generated files are stored in `results/metrics/` and `results/figures/`.
+
+## Model Results
+
+The following results were obtained using the balanced dataset of 100,000 variants.
+
+| Model | Accuracy | Precision | Recall | F1-score | ROC-AUC | PR-AUC |
+|---|---:|---:|---:|---:|---:|---:|
+| Dummy Classifier | 0.5000 | 0.0000 | 0.0000 | 0.0000 | 0.5000 | 0.5000 |
+| Logistic Regression | 0.7641 | 0.8173 | 0.6803 | 0.7425 | 0.8431 | 0.8578 |
+| Random Forest | 0.7275 | 0.8973 | 0.5137 | 0.6534 | 0.8039 | 0.8301 |
+
+Logistic Regression achieved the highest accuracy, recall, F1-score, ROC-AUC, and PR-AUC.
+
+Random Forest had higher precision for pathogenic predictions, but its recall was considerably lower. In other words, a greater proportion of its pathogenic predictions were correct, but it missed more variants labeled as pathogenic.
+
+Logistic Regression was selected as the primary model because it provided a better balance between precision and recall.
+
+This comparison is specific to the current dataset and model configurations. It does not establish that Logistic Regression is generally better suited to genetic variant classification.
+
+## Model Interpretation
+
+Two methods were used to examine how the models make predictions.
+
+### Logistic Regression
+
+Logistic Regression coefficients describe the relationship between encoded input features and the predicted log-odds of the pathogenic class.
+
+Positive coefficients increase the predicted log-odds of pathogenicity, while negative coefficients decrease them, with other features held constant.
+
+Their magnitudes depend on feature encoding and scaling. Correlations between predictors can also affect their interpretation.
+
+### Random Forest
+
+Random Forest feature importance is based on reductions in node impurity across the decision trees.
+
+Features with higher importance values contribute more to the model's splitting decisions.
+
+Unlike Logistic Regression coefficients, these values do not indicate whether a feature is associated with a higher or lower pathogenicity score.
+
+Both methods describe the behavior of the trained models. They should not be interpreted as evidence of biological causation.
+
+## Ablation Study
+
+An ablation study was conducted to examine how different groups of features affect Logistic Regression performance.
+
+Four configurations were evaluated:
+
+| Feature set | Accuracy | Precision | Recall | F1-score | ROC-AUC | PR-AUC |
+|---|---:|---:|---:|---:|---:|---:|
+| Structural Only | 0.7069 | 0.8971 | 0.4674 | 0.6146 | 0.7073 | 0.6902 |
+| Structural + Genomic | 0.7535 | 0.8001 | 0.6759 | 0.7328 | 0.8333 | 0.8465 |
+| Structural + Origin | 0.7246 | 0.8978 | 0.5069 | 0.6480 | 0.7265 | 0.7154 |
+| Full Features | 0.7641 | 0.8173 | 0.6803 | 0.7425 | 0.8431 | 0.8578 |
+
+Structural features alone achieved an F1-score of 0.6146.
+
+Adding genomic information increased the F1-score to 0.7328 and improved pathogenic recall from 0.4674 to 0.6759.
+
+The full feature set achieved the highest F1-score, accuracy, recall, ROC-AUC, and PR-AUC.
+
+These results indicate that genomic information contributes substantially to the model's performance. Origin metadata provides a smaller improvement when added to structural features.
+
+The experiments also show a trade-off between precision and recall. Some reduced feature sets achieved higher precision but identified fewer pathogenic variants.
+
+Run the ablation study with:
+
+```bash
+python3 -m src.ablation
+```
+
+Results are saved to:
 
 ```text
 results/metrics/ablation_study.csv
 ```
 
----
+## Gene-Based Evaluation
 
-## Models Evaluated
+### Motivation
 
-| Model | Accuracy | F1-score (Pathogenic) |
-|-------|---------:|----------------------:|
-| DummyClassifier | 0.5000 | 0.0000 |
-| Logistic Regression | 0.9183 | 0.9185 |
-| Random Forest | 0.8175 | 0.7925 |
+In a random train-test split, variants associated with the same gene may appear in both subsets.
 
-### Current Scripted Models
+This can make it difficult to determine how well a model performs on variants from genes it has not encountered during training.
 
-The current scripted models use a shared scikit-learn preprocessing pipeline based on:
+To examine this, an additional evaluation was performed using gene-based splitting.
 
-- OneHotEncoder
-- ColumnTransformer
-- categorical feature encoding
-- numeric feature passthrough
+### Method
 
-Logistic Regression and Random Forest use balanced class weights. These models are initial reproducible baselines and will likely be improved as the project develops.
+The experiment uses `GroupShuffleSplit` from scikit-learn, with gene symbols defining the groups.
 
----
+For each split, genes assigned to the test set are excluded from training.
 
-## Preliminary Results
+Five gene-based splits were evaluated.
 
-The latest scripted run used a balanced sample with 10,000 benign/likely benign variants and 10,000 pathogenic/likely pathogenic variants.
+`GeneSymbol` was removed from the predictors for both the random-split baseline and the gene-based experiments. This keeps the feature representation comparable.
 
-| Model | Accuracy | Precision (Pathogenic) | Recall (Pathogenic) | F1-score (Pathogenic) | ROC-AUC | PR-AUC |
-|-------|---------:|------------------------:|---------------------:|----------------------:|--------:|-------:|
-| DummyClassifier | 0.5000 | 0.0000 | 0.0000 | 0.0000 | 0.5000 | 0.5000 |
-| Logistic Regression | 0.9183 | 0.9160 | 0.9210 | 0.9185 | 0.9726 | 0.9728 |
-| Random Forest | 0.8175 | 0.9183 | 0.6970 | 0.7925 | 0.9268 | 0.9287 |
+### Results
 
-In this preliminary run, Logistic Regression outperformed Random Forest across accuracy, pathogenic F1-score, ROC-AUC, and PR-AUC. This suggests that a simpler linear baseline is currently more effective for the engineered feature set than the Random Forest configuration.
+| Metric | Random Split | Gene-Based Mean | Standard Deviation |
+|---|---:|---:|---:|
+| Accuracy | 0.7284 | 0.7260 | 0.0078 |
+| Precision | 0.8568 | 0.8567 | 0.0180 |
+| Recall | 0.5485 | 0.5435 | 0.0204 |
+| F1-score | 0.6688 | 0.6650 | 0.0197 |
+| ROC-AUC | 0.7584 | 0.7459 | 0.0208 |
+| PR-AUC | 0.7945 | 0.7849 | 0.0259 |
 
-These results are preliminary and should be interpreted as a current development checkpoint, not as a finalized benchmark.
+The gene-based results are reported as the mean and sample standard deviation across five splits.
 
----
+Average performance was close to the random-split baseline. For example, the F1-score decreased from 0.6688 to 0.6650.
 
-## Ablation Study
+However, the test sets differed in size, gene composition, and class distribution. Performance also varied between iterations.
 
-The ablation study evaluates how different feature groups contribute to pathogenicity prediction using Logistic Regression.
+The results suggest that the model can retain similar performance on the held-out gene groups examined here, but they are not sufficient to establish generalization to all unseen genes.
 
-| Feature Set | Accuracy | Precision (Pathogenic) | Recall (Pathogenic) | F1-score (Pathogenic) | ROC-AUC | PR-AUC |
-|-------------|---------:|------------------------:|---------------------:|----------------------:|--------:|-------:|
-| Structural only | 0.6025 | 0.7863 | 0.2815 | 0.4146 | 0.6066 | 0.6041 |
-| Structural + genomic | 0.9003 | 0.8817 | 0.9245 | 0.9026 | 0.9605 | 0.9575 |
-| Structural + clinical metadata | 0.7673 | 0.9102 | 0.5930 | 0.7181 | 0.8188 | 0.8248 |
-| Full feature set | 0.9183 | 0.9160 | 0.9210 | 0.9185 | 0.9726 | 0.9728 |
+Repeated `GroupShuffleSplit` test sets may overlap, so the five experiments should not be treated as independent cross-validation folds.
 
-The results suggest that structural variant features alone are not sufficient for strong classification performance. Adding genomic context, especially gene-level information, substantially improves performance. Clinical metadata also improves over structural features alone, but these features should be interpreted carefully because they may reflect ClinVar annotation and review patterns rather than purely biological signal.
+Run the experiment:
 
----
-
-## Model Interpretation
-
-Because Logistic Regression is the current primary model, interpretation is based on model coefficients rather than Random Forest feature importance.
-
-The coefficient analysis is saved to:
-
-```text
-results/metrics/logistic_regression_coefficients.csv
-results/figures/logistic_regression_coefficients.png
+```bash
+python3 -m src.gene_split_evaluation
 ```
 
-The largest absolute coefficients currently include several gene-level and metadata-derived features. These coefficients should be interpreted carefully:
+The results are saved to:
 
-- positive coefficients increase the model's predicted probability of the pathogenic class;
-- negative coefficients decrease the model's predicted probability of the pathogenic class;
-- gene-level coefficients may reflect strong ClinVar-specific patterns in the current dataset;
-- metadata-derived coefficients may reflect annotation and review patterns rather than purely biological signal.
+```text
+results/metrics/gene_split_comparison.csv
+results/metrics/gene_split_summary.csv
+```
 
-Random Forest feature importance was used in earlier exploratory runs, but it is no longer the primary interpretation artifact for the current scripted evaluation.
+## Desktop Application
 
----
+The project includes a desktop interface built with CustomTkinter.
 
-## Technologies Used
+It contains three pages.
 
-- Python
-- Pandas
-- NumPy
-- Scikit-Learn
-- Matplotlib
-- Seaborn
-- Joblib
-- Jupyter Notebook
+### Dashboard
 
----
+The Dashboard displays dataset statistics and model evaluation results.
+
+Users can view the class distribution, compare model performance, and examine ROC and Precision–Recall curves.
+
+### Variant Prediction
+
+The prediction page allows users to enter information about a genetic variant and obtain a classification from a trained model.
+
+The inputs include:
+
+- Gene symbol and chromosome
+- Reference and alternate alleles
+- Variant origin
+- Classification model
+
+Users can choose between Logistic Regression and Random Forest.
+
+The application derives the required structural features from the supplied alleles and passes the resulting data to the selected model.
+
+The output includes a predicted class and a model-generated pathogenicity score.
+
+The score reflects the model's learned patterns in the training data. It is not a clinically calibrated probability of pathogenicity.
+
+### Model Analysis
+
+The Model Analysis page displays the experimental results generated by the Python pipeline.
+
+It includes Logistic Regression coefficients, Random Forest feature importance, ablation results, and comparisons between random and gene-based evaluation.
+
+### Running the Application
+
+From the project directory:
+
+```bash
+python3 -m app.main
+```
+
+The application requires the trained models and generated evaluation files to be available locally.
+
+## Jupyter Notebooks
+
+Three notebooks document the main analyses.
+
+### 01 — Data Exploration
+
+`01_data_exploration.ipynb`
+
+Examines the processed dataset, including class distribution, mutation types, chromosomes, genes, allele lengths, missing values, and duplicate records.
+
+### 02 — Model Evaluation
+
+`02_model_evaluation.ipynb`
+
+Compares the three classification models using evaluation metrics, confusion matrices, ROC curves, and Precision–Recall curves.
+
+It also explains the selection of Logistic Regression as the primary model.
+
+### 03 — Experimental Analysis
+
+`03_experimental_analysis.ipynb`
+
+Covers model interpretation, the ablation study, and gene-based evaluation.
+
+It also examines performance variability and differences in class distribution across the gene-based splits.
+
+The notebooks use the datasets and results generated by the pipeline. They do not repeat model training.
 
 ## Installation
 
-Clone the repository:
+### Requirements
+
+The project uses Python and the libraries listed in `requirements.txt`.
+
+The main dependencies are Pandas, NumPy, scikit-learn, Matplotlib, Seaborn, Joblib, CustomTkinter, Pillow, and Jupyter.
+
+### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/genetic-variant-classification.git
+git clone https://github.com/blagaalexandramaria/genetic-variant-classification-
 cd genetic-variant-classification
 ```
 
-Install dependencies:
+### 2. Create a Virtual Environment
 
 ```bash
-pip install -r requirements.txt
+python3 -m venv .venv
 ```
 
-Because the full data files are large, they are not included directly in the repository. The notebooks and scripts expect the processed data to be available locally under `data/processed/`.
+On macOS or Linux:
 
-The scripted pipeline expects the raw ClinVar file at:
+```bash
+source .venv/bin/activate
+```
+
+On Windows:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+### 3. Install Dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+### 4. Prepare the Dataset
+
+Download the ClinVar variant summary file from NCBI and place it in:
 
 ```text
 data/raw/variant_summary.txt
 ```
 
-To generate the current balanced dataset and run the pipeline:
+Generate the balanced dataset:
 
 ```bash
-python src/preprocessing.py --mode balanced-sample --samples-per-class 10000
-python src/train.py
-python src/evaluate.py
+python -m src.preprocessing --mode balanced-sample --samples-per-class 50000
 ```
 
----
+### 5. Train and Evaluate the Models
 
-## Development Roadmap
+Run the scripts in the following order:
 
-Planned improvements include:
+```bash
+python -m src.train
+python -m src.evaluate
+python -m src.ablation
+python -m src.gene_split_evaluation
+```
 
-- Add a larger or repeated balanced sampling strategy for more stable evaluation
-- Add a small sample dataset for quick testing
-- Add clear instructions for downloading or regenerating ClinVar data
-- Add more robust validation
-- Add permutation importance or SHAP-based interpretability
-- Experiment with XGBoost and LightGBM
-- Explore sequence-based features and k-mer representations
-- Investigate deep learning or transformer-based genomic models
-- Validate the model on independent genomic datasets
+The scripts generate the model files, evaluation metrics, and figures used by the application and notebooks.
 
----
+### 6. Launch the Application
+
+```bash
+python -m app.main
+```
+
+### 7. Open the Notebooks
+
+```bash
+jupyter notebook
+```
+
+Open the notebooks from the `notebooks/` directory.
+
+## Limitations
+
+The models use a limited representation of genetic variants. Features such as population allele frequencies, functional consequences, and evolutionary conservation are not included.
+
+The dataset was sampled from ClinVar and balanced artificially. As a result, the class distribution differs from that of naturally occurring variants, and the reported precision values may not transfer to other populations or datasets.
+
+ClinVar classifications may also reflect differences in submission practices and available evidence.
+
+Although gene-based splitting was used to examine generalization, the evaluation was limited to five repeated splits. No independent external dataset was used.
+
+The predicted pathogenicity scores have not been calibrated or validated for clinical interpretation.
+
+The application is intended for research and demonstration purposes. Its predictions should not be used for diagnosis or other medical decisions.
+
+## Future Work
+
+Possible extensions include independent validation, probability calibration, and more detailed analysis of performance across individual genes.
+
+Additional biological features could also be incorporated, including population frequencies, conservation scores, and functional annotations.
+
+Other approaches worth investigating include permutation importance, SHAP-based interpretation, and sequence-based representations.
 
 ## Author
 
 **Alexandra Blaga**
 
-Computer Science Student interested in:
-
-- Artificial Intelligence
-- Bioinformatics
-- Genomics
-- Machine Learning
+Computer Science student with interests in artificial intelligence, machine learning, bioinformatics, and genomics.

@@ -125,7 +125,7 @@ def main() -> None:
     results_df.to_csv(comparison_path, index=False)
 
     print("\nModel comparison:")
-    print(results_df)
+    print(results_df.to_string(index=False))
 
     print(f"\nSaved model comparison to: {comparison_path}")
 

@@ -1,7 +1,18 @@
+# Data processing
 pandas>=2.0
 numpy>=1.26
+
+# Machine learning
 scikit-learn>=1.5
+joblib>=1.4
+
+# Data visualization
 matplotlib>=3.8
 seaborn>=0.13
-joblib>=1.4
+
+# Graphical user interface
+customtkinter>=5.2
+Pillow>=10.0
+
+# Jupyter notebooks
 jupyter>=1.0

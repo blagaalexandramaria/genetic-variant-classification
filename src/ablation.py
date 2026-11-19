@@ -2,11 +2,11 @@ import pandas as pd
 
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LogisticRegression
-from metrics import evaluate_classification_model
-
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
+
+from metrics import evaluate_classification_model
 
 from config import (
     PROCESSED_CLINVAR_FILE,
@@ -14,6 +14,7 @@ from config import (
     RANDOM_STATE,
     TARGET_COLUMN,
 )
+
 
 FEATURE_SETS = {
     "structural_only": {
@@ -38,11 +39,10 @@ FEATURE_SETS = {
             "length_difference",
         ],
     },
-    "structural_plus_clinical": {
+    "structural_plus_origin": {
         "categorical": [
             "mutation_type",
             "OriginSimple",
-            "ReviewStatus",
         ],
         "numeric": [
             "ref_length",
@@ -56,7 +56,6 @@ FEATURE_SETS = {
             "GeneSymbol",
             "mutation_type",
             "OriginSimple",
-            "ReviewStatus",
         ],
         "numeric": [
             "ref_length",
@@ -66,8 +65,13 @@ FEATURE_SETS = {
     },
 }
 
-def build_model(categorical_features: list[str], numeric_features: list[str]) -> Pipeline:
+
+def build_model(
+    categorical_features: list[str],
+    numeric_features: list[str],
+) -> Pipeline:
     """Build a Logistic Regression pipeline for a given feature set."""
+
     preprocessor = ColumnTransformer(
         transformers=[
             (
@@ -96,11 +100,11 @@ def build_model(categorical_features: list[str], numeric_features: list[str]) ->
         ]
     )
 
+
 def main() -> None:
     df = pd.read_csv(PROCESSED_CLINVAR_FILE)
 
     y = df[TARGET_COLUMN]
-
     results = []
 
     for feature_set_name, feature_config in FEATURE_SETS.items():
@@ -108,6 +112,7 @@ def main() -> None:
 
         categorical_features = feature_config["categorical"]
         numeric_features = feature_config["numeric"]
+
         selected_features = categorical_features + numeric_features
 
         X = df[selected_features]
@@ -127,11 +132,17 @@ def main() -> None:
 
         model.fit(X_train, y_train)
 
-        metrics = evaluate_classification_model(model, X_test, y_test)
+        metrics = evaluate_classification_model(
+            model,
+            X_test,
+            y_test,
+        )
+
         metrics["feature_set"] = feature_set_name
         results.append(metrics)
 
     results_df = pd.DataFrame(results)
+
     results_df = results_df[
         [
             "feature_set",
@@ -150,7 +161,7 @@ def main() -> None:
     results_df.to_csv(output_path, index=False)
 
     print("\nAblation study results:")
-    print(results_df)
+    print(results_df.to_string(index=False))
 
     print(f"\nSaved ablation study to: {output_path}")
 
