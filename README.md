@@ -139,7 +139,6 @@ genetic-variant-classification/
 │       ├── gene_split_comparison.csv
 │       └── gene_split_summary.csv
 │
-├── reports/
 │
 ├── requirements.txt
 └── README.md
@@ -429,7 +428,7 @@ The main dependencies are Pandas, NumPy, scikit-learn, Matplotlib, Seaborn, Jobl
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/blagaalexandramaria/genetic-variant-classification-
+git clone https://github.com/blagaalexandramaria/genetic-variant-classification
 cd genetic-variant-classification
 ```
 
