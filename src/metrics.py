@@ -11,11 +11,7 @@ from sklearn.metrics import (
 )
 from sklearn.pipeline import Pipeline
 
-def evaluate_classification_model(
-    model: Pipeline,
-    X_test: pd.DataFrame,
-    y_test: pd.Series,
-) -> dict[str, float]:
+def evaluate_classification_model(model: Pipeline,X_test: pd.DataFrame,y_test: pd.Series,) -> dict[str, float]:
     # Evaluate a binary classification model with class-specific and probability metrics.
     predictions = model.predict(X_test)
 

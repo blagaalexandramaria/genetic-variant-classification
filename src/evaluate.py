@@ -34,36 +34,23 @@ from config import (
 )
 
 
-MODEL_NAMES = [
-    "logistic_regression",
-    "random_forest",
-]
+MODEL_NAMES = ["logistic_regression","random_forest"]
 
 
 def load_test_data() -> tuple[pd.DataFrame, pd.Series]:
-    """Load the processed dataset and recreate the training test split."""
+    # Load the processed dataset and recreate the training test split.
     df = pd.read_csv(PROCESSED_CLINVAR_FILE)
 
     X = df[CATEGORICAL_FEATURES + NUMERIC_FEATURES]
     y = df[TARGET_COLUMN]
 
-    _, X_test, _, y_test = train_test_split(
-        X,
-        y,
-        test_size=0.2,
-        stratify=y,
-        random_state=RANDOM_STATE,
-    )
+    _, X_test, _, y_test = train_test_split(X,y,test_size=0.2,stratify=y,random_state=RANDOM_STATE)
 
     return X_test, y_test
 
 
-def save_classification_report(
-    model_name: str,
-    y_test: pd.Series,
-    predictions,
-) -> None:
-    """Save a classification report for each model."""
+def save_classification_report(model_name: str,y_test: pd.Series,predictions) -> None:
+    # Save a classification report for each model.
     report = classification_report(
         y_test,
         predictions,
@@ -77,12 +64,8 @@ def save_classification_report(
     print(report)
 
 
-def save_confusion_matrix(
-    model_name: str,
-    y_test: pd.Series,
-    predictions,
-) -> None:
-    """Save the confusion matrix for each model."""
+def save_confusion_matrix(model_name: str,y_test: pd.Series,predictions) -> None:
+    # Save the confusion matrix for each model.
     matrix = confusion_matrix(y_test, predictions, labels=[0, 1])
 
     plt.figure(figsize=(6, 5))
@@ -109,12 +92,8 @@ def save_confusion_matrix(
     print(f"Saved confusion matrix to: {figure_path}")
 
 
-def save_probability_metrics(
-    model_name: str,
-    y_test: pd.Series,
-    probabilities,
-) -> None:
-    """Save ROC-AUC and PR-AUC for each model."""
+def save_probability_metrics(model_name: str,y_test: pd.Series,probabilities) -> None:
+    # Save ROC-AUC and PR-AUC for each model.
     roc_auc = roc_auc_score(y_test, probabilities)
     pr_auc = average_precision_score(y_test, probabilities)
 
@@ -130,7 +109,7 @@ def save_probability_metrics(
 
 
 def save_logistic_regression_coefficients(model) -> None:
-    """Save Logistic Regression coefficients and their visualization."""
+    # Save Logistic Regression coefficients and their visualization.
     preprocessor = model.named_steps["preprocessor"]
     classifier = model.named_steps["classifier"]
 
@@ -157,11 +136,7 @@ def save_logistic_regression_coefficients(model) -> None:
         for value in top_coefficients["coefficient"]
     ]
 
-    plt.barh(
-        top_coefficients["feature"],
-        top_coefficients["coefficient"],
-        color=colors,
-    )
+    plt.barh(top_coefficients["feature"],top_coefficients["coefficient"],color=colors)
 
     plt.xlabel("Coefficient")
     plt.title("Top Logistic Regression Coefficients")
@@ -176,7 +151,7 @@ def save_logistic_regression_coefficients(model) -> None:
 
 
 def save_random_forest_importance(model) -> None:
-    """Save Random Forest feature importance and its visualization."""
+    # Save Random Forest feature importance and its visualization.
     preprocessor = model.named_steps["preprocessor"]
     classifier = model.named_steps["classifier"]
 
@@ -216,7 +191,7 @@ def save_random_forest_importance(model) -> None:
 
 
 def save_roc_curves(y_test: pd.Series, model_probabilities: dict) -> None:
-    """Compare ROC curves across models."""
+    # Compare ROC curves across models.
     plt.figure(figsize=(7, 6))
 
     for model_name, probabilities in model_probabilities.items():
@@ -244,18 +219,12 @@ def save_roc_curves(y_test: pd.Series, model_probabilities: dict) -> None:
     print(f"Saved ROC curves to: {figure_path}")
 
 
-def save_precision_recall_curves(
-    y_test: pd.Series,
-    model_probabilities: dict,
-) -> None:
-    """Compare Precision-Recall curves across models."""
+def save_precision_recall_curves(y_test: pd.Series,model_probabilities: dict,) -> None:
+    # Compare Precision-Recall curves across models.
     plt.figure(figsize=(7, 6))
 
     for model_name, probabilities in model_probabilities.items():
-        precision, recall, _ = precision_recall_curve(
-            y_test,
-            probabilities,
-        )
+        precision, recall, _ = precision_recall_curve(y_test,probabilities)
 
         ap = average_precision_score(y_test, probabilities)
 
@@ -265,12 +234,7 @@ def save_precision_recall_curves(
             label=f"{model_name.replace('_', ' ').title()} (AP={ap:.3f})",
         )
 
-    plt.axhline(
-        y=y_test.mean(),
-        color="black",
-        linestyle="--",
-        label="Baseline",
-    )
+    plt.axhline(y=y_test.mean(),color="black",linestyle="--",label="Baseline")
 
     plt.xlabel("Recall")
     plt.ylabel("Precision")
@@ -304,23 +268,11 @@ def main() -> None:
 
         model_probabilities[model_name] = probabilities
 
-        save_classification_report(
-            model_name,
-            y_test,
-            predictions,
-        )
+        save_classification_report(model_name,y_test,predictions)
 
-        save_confusion_matrix(
-            model_name,
-            y_test,
-            predictions,
-        )
+        save_confusion_matrix(model_name,y_test,predictions)
 
-        save_probability_metrics(
-            model_name,
-            y_test,
-            probabilities,
-        )
+        save_probability_metrics(model_name,y_test,probabilities)
 
         if model_name == "logistic_regression":
             save_logistic_regression_coefficients(model)

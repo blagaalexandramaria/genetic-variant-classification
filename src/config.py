@@ -18,15 +18,9 @@ PROCESSED_CLINVAR_FILE = PROCESSED_DATA_DIR / "clinvar_features.csv"
 
 TARGET_COLUMN = "target"
 
-BENIGN_LABELS = {
-    "Benign",
-    "Likely benign",
-}
+BENIGN_LABELS = {"Benign","Likely benign"}
 
-PATHOGENIC_LABELS = {
-    "Pathogenic",
-    "Likely pathogenic",
-}
+PATHOGENIC_LABELS = {"Pathogenic","Likely pathogenic"}
 
 CATEGORICAL_FEATURES = [
     "Chromosome",

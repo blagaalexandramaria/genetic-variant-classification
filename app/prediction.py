@@ -23,8 +23,7 @@ MODEL_FILES = {
 
 
 class PredictionPage(ctk.CTkFrame):
-    """Page for predicting genetic variant classifications."""
-
+    # Page for predicting genetic variant classifications.
     def __init__(self, master):
         super().__init__(
             master,
@@ -43,11 +42,7 @@ class PredictionPage(ctk.CTkFrame):
             corner_radius=0,
         )
 
-        self.scroll_frame.grid(
-            row=0,
-            column=0,
-            sticky="nsew",
-        )
+        self.scroll_frame.grid(row=0,column=0,sticky="nsew")
 
         self.scroll_frame.grid_columnconfigure(0, weight=1)
 
@@ -56,20 +51,9 @@ class PredictionPage(ctk.CTkFrame):
         self.create_result_section()
 
     def create_header(self):
-        """Create the page title and description."""
-
-        header = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="transparent",
-        )
-
-        header.grid(
-            row=0,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(30, 20),
-        )
+        # Create the page title and description.
+        header = ctk.CTkFrame(self.scroll_frame,fg_color="transparent",)
+        header.grid(row=0,column=0,sticky="ew",padx=30,pady=(30, 20))
 
         ctk.CTkLabel(
             header,
@@ -92,12 +76,8 @@ class PredictionPage(ctk.CTkFrame):
         )
 
     def create_input_field(self, parent, label, placeholder):
-        """Create a labeled text input."""
-
-        container = ctk.CTkFrame(
-            parent,
-            fg_color="transparent",
-        )
+        # Create a labeled text input.
+        container = ctk.CTkFrame(parent,fg_color="transparent")
 
         ctk.CTkLabel(
             container,
@@ -123,12 +103,8 @@ class PredictionPage(ctk.CTkFrame):
         return container, entry
 
     def create_dropdown(self, parent, label, values):
-        """Create a labeled dropdown menu."""
-
-        container = ctk.CTkFrame(
-            parent,
-            fg_color="transparent",
-        )
+        # Create a labeled dropdown menu.
+        container = ctk.CTkFrame(parent,fg_color="transparent")
 
         ctk.CTkLabel(
             container,
@@ -156,7 +132,7 @@ class PredictionPage(ctk.CTkFrame):
         return container, dropdown
 
     def create_input_form(self):
-        """Create the variant information form."""
+        # Create the variant information form.
 
         section = ctk.CTkFrame(
             self.scroll_frame,
@@ -166,13 +142,7 @@ class PredictionPage(ctk.CTkFrame):
             border_color=BORDER,
         )
 
-        section.grid(
-            row=1,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(0, 25),
-        )
+        section.grid(row=1,column=0,sticky="ew",padx=30,pady=(0, 25))
 
         ctk.CTkLabel(
             section,
@@ -188,16 +158,9 @@ class PredictionPage(ctk.CTkFrame):
             pady=(25, 20),
         )
 
-        form = ctk.CTkFrame(
-            section,
-            fg_color="transparent",
-        )
+        form = ctk.CTkFrame(section,fg_color="transparent")
 
-        form.pack(
-            fill="x",
-            padx=25,
-            pady=(0, 20),
-        )
+        form.pack(fill="x",padx=25,pady=(0, 20),)
 
         form.grid_columnconfigure(0, weight=1)
         form.grid_columnconfigure(1, weight=1)
@@ -209,13 +172,7 @@ class PredictionPage(ctk.CTkFrame):
             "e.g. BRCA1",
         )
 
-        gene_container.grid(
-            row=0,
-            column=0,
-            sticky="ew",
-            padx=(0, 10),
-            pady=(0, 20),
-        )
+        gene_container.grid(row=0,column=0,sticky="ew",padx=(0, 10),pady=(0, 20))
 
         # Chromosome
         chromosome_values = [
@@ -223,20 +180,10 @@ class PredictionPage(ctk.CTkFrame):
         ] + ["X", "Y", "MT"]
 
         chromosome_container, self.chromosome_dropdown = (
-            self.create_dropdown(
-                form,
-                "Chromosome",
-                chromosome_values,
-            )
+            self.create_dropdown(form,"Chromosome",chromosome_values,)
         )
 
-        chromosome_container.grid(
-            row=0,
-            column=1,
-            sticky="ew",
-            padx=(10, 0),
-            pady=(0, 20),
-        )
+        chromosome_container.grid(row=0,column=1,sticky="ew",padx=(10, 0),pady=(0, 20))
 
         # Reference allele
         ref_container, self.ref_entry = self.create_input_field(
@@ -245,13 +192,7 @@ class PredictionPage(ctk.CTkFrame):
             "e.g. A",
         )
 
-        ref_container.grid(
-            row=1,
-            column=0,
-            sticky="ew",
-            padx=(0, 10),
-            pady=(0, 20),
-        )
+        ref_container.grid(row=1,column=0,sticky="ew",padx=(0, 10),pady=(0, 20))
 
         # Alternate allele
         alt_container, self.alt_entry = self.create_input_field(
@@ -260,13 +201,7 @@ class PredictionPage(ctk.CTkFrame):
             "e.g. G",
         )
 
-        alt_container.grid(
-            row=1,
-            column=1,
-            sticky="ew",
-            padx=(10, 0),
-            pady=(0, 20),
-        )
+        alt_container.grid(row=1,column=1,sticky="ew",padx=(10, 0),pady=(0, 20))
 
         # Origin
         origin_container, self.origin_dropdown = self.create_dropdown(
@@ -279,13 +214,7 @@ class PredictionPage(ctk.CTkFrame):
             ],
         )
 
-        origin_container.grid(
-            row=2,
-            column=0,
-            sticky="ew",
-            padx=(0, 10),
-            pady=(0, 20),
-        )
+        origin_container.grid(row=2,column=0,sticky="ew",padx=(0, 10),pady=(0, 20))
 
         # Model selection
         model_container, self.model_dropdown = self.create_dropdown(
@@ -294,29 +223,15 @@ class PredictionPage(ctk.CTkFrame):
             list(MODEL_FILES.keys()),
         )
 
-        model_container.grid(
-            row=2,
-            column=1,
-            sticky="ew",
-            padx=(10, 0),
-            pady=(0, 20),
-        )
+        model_container.grid(row=2,column=1,sticky="ew",padx=(10, 0),pady=(0, 20))
 
         self.model_dropdown.set("Logistic Regression")
         self.origin_dropdown.set("germline")
         self.chromosome_dropdown.set("17")
 
         # Action buttons
-        buttons = ctk.CTkFrame(
-            section,
-            fg_color="transparent",
-        )
-
-        buttons.pack(
-            fill="x",
-            padx=25,
-            pady=(0, 25),
-        )
+        buttons = ctk.CTkFrame(section,fg_color="transparent")
+        buttons.pack(fill="x",padx=25,pady=(0, 25))
 
         self.predict_button = ctk.CTkButton(
             buttons,
@@ -331,12 +246,7 @@ class PredictionPage(ctk.CTkFrame):
             command=self.predict_variant,
         )
 
-        self.predict_button.pack(
-            side="left",
-            fill="x",
-            expand=True,
-            padx=(0, 10),
-        )
+        self.predict_button.pack(side="left",fill="x",expand=True,padx=(0, 10))
 
         self.clear_button = ctk.CTkButton(
             buttons,
@@ -352,8 +262,7 @@ class PredictionPage(ctk.CTkFrame):
         self.clear_button.pack(side="right")
 
     def create_result_section(self):
-        """Create the prediction results panel."""
-
+        # Create the prediction results panel.
         self.result_card = ctk.CTkFrame(
             self.scroll_frame,
             fg_color=CARD,
@@ -362,13 +271,7 @@ class PredictionPage(ctk.CTkFrame):
             border_color=BORDER,
         )
 
-        self.result_card.grid(
-            row=2,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(0, 30),
-        )
+        self.result_card.grid(row=2,column=0,sticky="ew",padx=30,pady=(0, 30))
 
         ctk.CTkLabel(
             self.result_card,
@@ -394,11 +297,7 @@ class PredictionPage(ctk.CTkFrame):
             text_color=TEXT_SECONDARY,
         )
 
-        self.prediction_label.pack(
-            anchor="w",
-            padx=25,
-            pady=(0, 10),
-        )
+        self.prediction_label.pack(anchor="w",padx=25,pady=(0, 10))
 
         self.probability_label = ctk.CTkLabel(
             self.result_card,
@@ -407,10 +306,7 @@ class PredictionPage(ctk.CTkFrame):
             text_color=TEXT_PRIMARY,
         )
 
-        self.probability_label.pack(
-            anchor="w",
-            padx=25,
-        )
+        self.probability_label.pack(anchor="w",padx=25)
 
         self.details_label = ctk.CTkLabel(
             self.result_card,
@@ -420,11 +316,7 @@ class PredictionPage(ctk.CTkFrame):
             justify="left",
         )
 
-        self.details_label.pack(
-            anchor="w",
-            padx=25,
-            pady=(15, 20),
-        )
+        self.details_label.pack(anchor="w",padx=25,pady=(15, 20))
 
         disclaimer = ctk.CTkLabel(
             self.result_card,
@@ -438,33 +330,25 @@ class PredictionPage(ctk.CTkFrame):
             justify="left",
         )
 
-        disclaimer.pack(
-            anchor="w",
-            padx=25,
-            pady=(0, 25),
-        )
+        disclaimer.pack(anchor="w",padx=25,pady=(0, 25))
 
     def load_model(self, model_name):
-        """Load a trained model and cache it for future predictions."""
-
+        # Load a trained model and cache it for future predictions.
         if model_name in self.models:
             return self.models[model_name]
 
         model_path = MODELS_DIR / MODEL_FILES[model_name]
 
         if not model_path.exists():
-            raise FileNotFoundError(
-                f"Model file not found: {model_path}"
-            )
+            raise FileNotFoundError(f"Model file not found: {model_path}")
 
         model = joblib.load(model_path)
-
         self.models[model_name] = model
 
         return model
 
     def predict_variant(self):
-        """Validate user input and predict variant classification."""
+        # Validate user input and predict variant classification.
 
         gene = self.gene_entry.get().strip().upper()
         chromosome = self.chromosome_dropdown.get()
@@ -475,30 +359,22 @@ class PredictionPage(ctk.CTkFrame):
 
         # Validate required fields.
         if not gene or not ref or not alt:
-            self.show_error(
-                "Please complete all required fields."
-            )
+            self.show_error("Please complete all required fields.")
             return
 
         # Validate DNA alleles.
         valid_bases = {"A", "C", "G", "T"}
 
         if not set(ref).issubset(valid_bases):
-            self.show_error(
-                "Reference allele must contain only A, C, G or T."
-            )
+            self.show_error("Reference allele must contain only A, C, G or T.")
             return
 
         if not set(alt).issubset(valid_bases):
-            self.show_error(
-                "Alternate allele must contain only A, C, G or T."
-            )
+            self.show_error("Alternate allele must contain only A, C, G or T.")
             return
 
         if ref == alt:
-            self.show_error(
-                "Reference and alternate alleles must be different."
-            )
+            self.show_error("Reference and alternate alleles must be different.")
             return
 
         try:
@@ -533,9 +409,7 @@ class PredictionPage(ctk.CTkFrame):
             class_index = list(model.classes_).index(1)
             pathogenic_score = float(probabilities[class_index])
 
-            classification = (
-                "Pathogenic" if prediction == 1 else "Benign"
-            )
+            classification = ("Pathogenic" if prediction == 1 else "Benign")
 
             self.display_prediction(
                 classification,
@@ -545,9 +419,7 @@ class PredictionPage(ctk.CTkFrame):
             )
 
         except Exception as error:
-            self.show_error(
-                f"Prediction failed: {error}"
-            )
+            self.show_error(f"Prediction failed: {error}")
 
     def display_prediction(
         self,
@@ -556,18 +428,11 @@ class PredictionPage(ctk.CTkFrame):
         variant,
         model_name,
     ):
-        """Display the predicted class and variant characteristics."""
-
-        self.prediction_label.configure(
-            text=f"Predicted Classification: {classification}",
-            text_color=ACCENT,
-        )
+        # Display the predicted class and variant characteristics.
+        self.prediction_label.configure(text=f"Predicted Classification: {classification}",text_color=ACCENT)
 
         self.probability_label.configure(
-            text=(
-                "Model score for pathogenic class: "
-                f"{pathogenic_score * 100:.2f}%"
-            )
+            text=("Model score for pathogenic class: "f"{pathogenic_score * 100:.2f}%")
         )
 
         details = (
@@ -581,20 +446,15 @@ class PredictionPage(ctk.CTkFrame):
         self.details_label.configure(text=details)
 
     def show_error(self, message):
-        """Display an error message in the results panel."""
-
-        self.prediction_label.configure(
-            text="Prediction Error",
-            text_color="#E57373",
-        )
+        # Display an error message in the results panel.
+        self.prediction_label.configure(text="Prediction Error",text_color="#E57373")
 
         self.probability_label.configure(text="")
 
         self.details_label.configure(text=message)
 
     def clear_form(self):
-        """Reset the input fields and prediction results."""
-
+        # Reset the input fields and prediction results.
         self.gene_entry.delete(0, "end")
         self.ref_entry.delete(0, "end")
         self.alt_entry.delete(0, "end")
@@ -603,10 +463,7 @@ class PredictionPage(ctk.CTkFrame):
         self.origin_dropdown.set("germline")
         self.model_dropdown.set("Logistic Regression")
 
-        self.prediction_label.configure(
-            text="No prediction available.",
-            text_color=TEXT_SECONDARY,
-        )
+        self.prediction_label.configure(text="No prediction available.",text_color=TEXT_SECONDARY)
 
         self.probability_label.configure(text="")
         self.details_label.configure(text="")

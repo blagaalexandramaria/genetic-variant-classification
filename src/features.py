@@ -2,7 +2,7 @@ import pandas as pd
 
 
 def normalize_allele(value: object) -> str:
-    """Return a clean allele string for length-based feature engineering."""
+    # Return a clean allele string for length-based feature engineering.
     if pd.isna(value):
         return ""
 
@@ -36,7 +36,7 @@ def classify_mutation_type(ref: object, alt: object) -> str:
 
 
 def add_variant_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Add allele length and mutation type features to a ClinVar dataframe."""
+    # Add allele length and mutation type features to a ClinVar dataframe.
     df = df.copy()
 
     # Use VCF alleles because they are suitable for length-based features.

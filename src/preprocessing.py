@@ -62,15 +62,9 @@ def load_balanced_sample(samples_per_class: int) -> pd.DataFrame:
 
     rng = random.Random(42)
 
-    reservoirs = {
-        0: [],
-        1: [],
-    }
+    reservoirs = {0: [],1: []}
 
-    counts = {
-        0: 0,
-        1: 0,
-    }
+    counts = {0: 0,1: 0}
 
     # Store the SQLite database in a temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -370,10 +364,7 @@ def analyze_duplicates(df: pd.DataFrame) -> None:
     valid = df.dropna(subset=variant_columns).copy()
 
     # Exclude records without valid genomic positions
-    positions = pd.to_numeric(
-        valid["PositionVCF"],
-        errors="coerce"
-    )
+    positions = pd.to_numeric(valid["PositionVCF"],errors="coerce")
 
     valid = valid.loc[positions > 0].copy()
 
@@ -386,21 +377,13 @@ def analyze_duplicates(df: pd.DataFrame) -> None:
         ]
 
     # Count duplicate records
-    duplicates = valid.duplicated(
-        subset=variant_columns,
-        keep=False
-    )
+    duplicates = valid.duplicated(subset=variant_columns,keep=False)
 
     # Count unique variants
-    unique_variants = valid.drop_duplicates(
-        subset=variant_columns
-    )
+    unique_variants = valid.drop_duplicates(subset=variant_columns)
 
     # Identify conflicting labels
-    conflicting = (
-        valid.groupby(variant_columns)["target"]
-        .nunique()
-    )
+    conflicting = (valid.groupby(variant_columns)["target"].nunique())
 
     conflicting_keys = conflicting[conflicting > 1].index
 
@@ -434,11 +417,7 @@ def analyze_duplicates(df: pd.DataFrame) -> None:
             "target",
         ]
 
-        print(
-            conflicting_records[columns_to_display]
-            .head(20)
-            .to_string(index=False)
-        )
+        print(conflicting_records[columns_to_display].head(20).to_string(index=False))
 
     print("--- End Duplicate Analysis ---\n")
 

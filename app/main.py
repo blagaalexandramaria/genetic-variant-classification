@@ -16,8 +16,7 @@ from .analysis import AnalysisPage
 
 
 class GeneticVariantApp(ctk.CTk):
-    """Main application window."""
-
+    # Main application window.
     def __init__(self):
         super().__init__()
 
@@ -35,19 +34,9 @@ class GeneticVariantApp(ctk.CTk):
         self.show_page("dashboard")
 
     def create_sidebar(self):
-        """Create the application navigation sidebar."""
-
-        self.sidebar = ctk.CTkFrame(
-            self,
-            width=250,
-            corner_radius=0,
-            fg_color=SIDEBAR,
-        )
-        self.sidebar.grid(
-            row=0,
-            column=0,
-            sticky="nsew",
-        )
+        # Create the application navigation sidebar.
+        self.sidebar = ctk.CTkFrame(self,width=250,corner_radius=0,fg_color=SIDEBAR)
+        self.sidebar.grid(row=0,column=0,sticky="nsew",)
         self.sidebar.grid_propagate(False)
 
         self.sidebar.grid_columnconfigure(0, weight=1)
@@ -60,13 +49,7 @@ class GeneticVariantApp(ctk.CTk):
             text_color=TEXT_PRIMARY,
             justify="left",
         )
-        logo.grid(
-            row=0,
-            column=0,
-            sticky="w",
-            padx=25,
-            pady=(35, 35),
-        )
+        logo.grid(row=0,column=0,sticky="w",padx=25,pady=(35, 35))
 
         self.buttons = {}
 
@@ -106,25 +89,12 @@ class GeneticVariantApp(ctk.CTk):
             text_color=TEXT_SECONDARY,
             font=ctk.CTkFont(size=12),
         )
-        footer.grid(
-            row=6,
-            column=0,
-            pady=25,
-        )
+        footer.grid(row=6,column=0,pady=25,)
 
     def create_pages(self):
-        """Initialize application pages."""
-
-        self.content = ctk.CTkFrame(
-            self,
-            fg_color=BACKGROUND,
-            corner_radius=0,
-        )
-        self.content.grid(
-            row=0,
-            column=1,
-            sticky="nsew",
-        )
+        # Initialize application pages.
+        self.content = ctk.CTkFrame(self,fg_color=BACKGROUND,corner_radius=0)
+        self.content.grid(row=0,column=1,sticky="nsew")
 
         self.content.grid_columnconfigure(0, weight=1)
         self.content.grid_rowconfigure(0, weight=1)
@@ -136,21 +106,14 @@ class GeneticVariantApp(ctk.CTk):
         }
 
         for page in self.pages.values():
-            page.grid(
-                row=0,
-                column=0,
-                sticky="nsew",
-            )
+            page.grid(row=0,column=0,sticky="nsew")
 
     def show_page(self, page_name):
-        """Display the selected page and update navigation buttons."""
-
+        # Display the selected page and update navigation buttons.
         self.pages[page_name].tkraise()
 
         for name, button in self.buttons.items():
-            button.configure(
-                fg_color=ACCENT if name == page_name else "transparent"
-            )
+            button.configure(fg_color=ACCENT if name == page_name else "transparent")
 
 
 if __name__ == "__main__":

@@ -31,7 +31,7 @@ MODEL_NAMES = {
 
 
 class DashboardPage(ctk.CTkFrame):
-    """Display dataset statistics and model performance."""
+    # Display dataset statistics and model performance.
 
     def __init__(self, master):
         super().__init__(
@@ -66,7 +66,7 @@ class DashboardPage(ctk.CTkFrame):
         self.create_performance_charts()
 
     def create_header(self):
-        """Create the dashboard title and description."""
+        # Create the dashboard title and description.
 
         header = ctk.CTkFrame(
             self.scroll_frame,
@@ -84,10 +84,7 @@ class DashboardPage(ctk.CTkFrame):
         title = ctk.CTkLabel(
             header,
             text="Dashboard",
-            font=ctk.CTkFont(
-                size=28,
-                weight="bold",
-            ),
+            font=ctk.CTkFont(size=28,weight="bold"),
             text_color=TEXT_PRIMARY,
         )
 
@@ -103,7 +100,7 @@ class DashboardPage(ctk.CTkFrame):
         subtitle.pack(anchor="w", pady=(5, 0))
 
     def create_section_title(self, parent, text):
-        """Create a reusable section heading."""
+        # Create a reusable section heading.
 
         title = ctk.CTkLabel(
             parent,
@@ -115,34 +112,14 @@ class DashboardPage(ctk.CTkFrame):
             text_color=TEXT_PRIMARY,
         )
 
-        title.pack(
-            anchor="w",
-            pady=(0, 15),
-        )
+        title.pack(anchor="w",pady=(0, 15))
 
     def create_stat_card(self, parent, title, value, description):
-        """Create a card displaying a dataset statistic."""
+        # Create a card displaying a dataset statistic.
+        card = ctk.CTkFrame(parent,fg_color=CARD,corner_radius=12,border_width=1,border_color=BORDER)
 
-        card = ctk.CTkFrame(
-            parent,
-            fg_color=CARD,
-            corner_radius=12,
-            border_width=1,
-            border_color=BORDER,
-        )
-
-        title_label = ctk.CTkLabel(
-            card,
-            text=title,
-            font=ctk.CTkFont(size=13),
-            text_color=TEXT_SECONDARY,
-        )
-
-        title_label.pack(
-            anchor="w",
-            padx=20,
-            pady=(18, 8),
-        )
+        title_label = ctk.CTkLabel(card,text=title,font=ctk.CTkFont(size=13),text_color=TEXT_SECONDARY)
+        title_label.pack(anchor="w",padx=20,pady=(18, 8))
 
         value_label = ctk.CTkLabel(
             card,
@@ -154,52 +131,21 @@ class DashboardPage(ctk.CTkFrame):
             text_color=ACCENT,
         )
 
-        value_label.pack(
-            anchor="w",
-            padx=20,
-        )
+        value_label.pack(anchor="w",padx=20)
 
-        description_label = ctk.CTkLabel(
-            card,
-            text=description,
-            font=ctk.CTkFont(size=12),
-            text_color=TEXT_SECONDARY,
-        )
-
-        description_label.pack(
-            anchor="w",
-            padx=20,
-            pady=(8, 18),
-        )
+        description_label = ctk.CTkLabel(card,text=description,font=ctk.CTkFont(size=12),text_color=TEXT_SECONDARY)
+        description_label.pack(anchor="w",padx=20,pady=(8, 18))
 
         return card
 
     def create_dataset_overview(self):
-        """Display information about the balanced ClinVar dataset."""
+        # Display information about the balanced ClinVar dataset.
+        section = ctk.CTkFrame(self.scroll_frame,fg_color="transparent")
+        section.grid(row=1,column=0,sticky="ew",padx=30,pady=(0, 25))
 
-        section = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="transparent",
-        )
+        self.create_section_title(section,"Dataset Overview")
 
-        section.grid(
-            row=1,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(0, 25),
-        )
-
-        self.create_section_title(
-            section,
-            "Dataset Overview",
-        )
-
-        cards = ctk.CTkFrame(
-            section,
-            fg_color="transparent",
-        )
-
+        cards = ctk.CTkFrame(section,fg_color="transparent")
         cards.pack(fill="x")
 
         for column in range(3):
@@ -224,56 +170,23 @@ class DashboardPage(ctk.CTkFrame):
         ]
 
         for column, (title, value, description) in enumerate(statistics):
-            card = self.create_stat_card(
-                cards,
-                title,
-                value,
-                description,
-            )
-
-            card.grid(
-                row=0,
-                column=column,
-                sticky="nsew",
-                padx=(0, 10) if column < 2 else 0,
-            )
+            card = self.create_stat_card(cards,title,value,description)
+            card.grid(row=0,column=column,sticky="nsew",padx=(0, 10) if column < 2 else 0)
 
     def create_model_overview(self):
-        """Display the best-performing model."""
+        # Display the best-performing model.
+        section = ctk.CTkFrame(self.scroll_frame,fg_color="transparent")
 
-        section = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="transparent",
-        )
+        section.grid(row=2,column=0,sticky="ew",padx=30,pady=(0, 25))
 
-        section.grid(
-            row=2,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(0, 25),
-        )
+        self.create_section_title(section,"Best Performing Model")
 
-        self.create_section_title(
-            section,
-            "Best Performing Model",
-        )
-
-        card = ctk.CTkFrame(
-            section,
-            fg_color=CARD,
-            corner_radius=12,
-            border_width=1,
-            border_color=BORDER,
-        )
+        card = ctk.CTkFrame(section,fg_color=CARD,corner_radius=12,border_width=1,border_color=BORDER)
 
         card.pack(fill="x")
 
         if not MODEL_COMPARISON_FILE.exists():
-            self.show_message(
-                card,
-                "Model comparison data is unavailable.",
-            )
+            self.show_message(card,"Model comparison data is unavailable.")
             return
 
         df = pd.read_csv(MODEL_COMPARISON_FILE)
@@ -289,41 +202,23 @@ class DashboardPage(ctk.CTkFrame):
         name_label = ctk.CTkLabel(
             card,
             text=model_name,
-            font=ctk.CTkFont(
-                size=22,
-                weight="bold",
-            ),
+            font=ctk.CTkFont(size=22,weight="bold"),
             text_color=ACCENT,
         )
 
-        name_label.pack(
-            anchor="w",
-            padx=20,
-            pady=(20, 5),
-        )
+        name_label.pack(anchor="w",padx=20,pady=(20, 5))
 
-        description = ctk.CTkLabel(
-            card,
+        description = ctk.CTkLabel(card,
             text="Highest pathogenic F1-score among the evaluated models.",
             font=ctk.CTkFont(size=13),
             text_color=TEXT_SECONDARY,
         )
 
-        description.pack(
-            anchor="w",
-            padx=20,
-        )
+        description.pack(anchor="w",padx=20)
 
-        metrics_frame = ctk.CTkFrame(
-            card,
-            fg_color="transparent",
-        )
+        metrics_frame = ctk.CTkFrame(card,fg_color="transparent")
 
-        metrics_frame.pack(
-            fill="x",
-            padx=20,
-            pady=20,
-        )
+        metrics_frame.pack(fill="x",padx=20,pady=20)
 
         metrics = [
             ("Accuracy", best_model["accuracy"]),
@@ -336,18 +231,8 @@ class DashboardPage(ctk.CTkFrame):
             metrics_frame.grid_columnconfigure(column, weight=1)
 
         for column, (name, value) in enumerate(metrics):
-            metric_frame = ctk.CTkFrame(
-                metrics_frame,
-                fg_color=BACKGROUND,
-                corner_radius=8,
-            )
-
-            metric_frame.grid(
-                row=0,
-                column=column,
-                sticky="nsew",
-                padx=(0, 10) if column < 3 else 0,
-            )
+            metric_frame = ctk.CTkFrame(metrics_frame,fg_color=BACKGROUND,corner_radius=8)
+            metric_frame.grid(row=0,column=column,sticky="nsew",padx=(0, 10) if column < 3 else 0)
 
             ctk.CTkLabel(
                 metric_frame,
@@ -367,32 +252,13 @@ class DashboardPage(ctk.CTkFrame):
             ).pack(pady=(0, 12))
 
     def create_model_comparison(self):
-        """Display the model comparison table."""
+        # Display the model comparison table.
+        section = ctk.CTkFrame(self.scroll_frame,fg_color="transparent")
+        section.grid(row=3,column=0,sticky="ew",padx=30,pady=(0, 25))
 
-        section = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="transparent",
-        )
+        self.create_section_title(section,"Model Comparison")
 
-        section.grid(
-            row=3,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(0, 25),
-        )
-
-        self.create_section_title(
-            section,
-            "Model Comparison",
-        )
-
-        table = ctk.CTkFrame(
-            section,
-            fg_color=CARD,
-            corner_radius=12,
-        )
-
+        table = ctk.CTkFrame(section,fg_color=CARD,corner_radius=12)
         table.pack(fill="x")
 
         if not MODEL_COMPARISON_FILE.exists():
@@ -428,12 +294,7 @@ class DashboardPage(ctk.CTkFrame):
                 text_color=ACCENT,
             )
 
-            header.grid(
-                row=0,
-                column=column,
-                padx=8,
-                pady=15,
-            )
+            header.grid(row=0,column=column,padx=8,pady=15,)
 
         for row_index, (_, model) in enumerate(df.iterrows(), start=1):
             for column, (_, key) in enumerate(columns):
@@ -461,25 +322,11 @@ class DashboardPage(ctk.CTkFrame):
                 )
 
     def create_performance_charts(self):
-        """Display ROC and Precision-Recall comparison charts."""
+        # Display ROC and Precision-Recall comparison charts.
+        section = ctk.CTkFrame(self.scroll_frame,fg_color="transparent")
+        section.grid(row=4,column=0,sticky="ew",padx=30,pady=(0, 30))
 
-        section = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="transparent",
-        )
-
-        section.grid(
-            row=4,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(0, 30),
-        )
-
-        self.create_section_title(
-            section,
-            "Performance Charts",
-        )
+        self.create_section_title(section,"Performance Charts")
 
         charts = [
             (
@@ -493,16 +340,8 @@ class DashboardPage(ctk.CTkFrame):
         ]
 
         for title, filename in charts:
-            card = ctk.CTkFrame(
-                section,
-                fg_color=CARD,
-                corner_radius=12,
-            )
-
-            card.pack(
-                fill="x",
-                pady=(0, 15),
-            )
+            card = ctk.CTkFrame(section,fg_color=CARD,corner_radius=12)
+            card.pack(fill="x",pady=(0, 15))
 
             ctk.CTkLabel(
                 card,
@@ -532,33 +371,14 @@ class DashboardPage(ctk.CTkFrame):
 
             image.thumbnail((750, 420))
 
-            chart_image = ctk.CTkImage(
-                light_image=image,
-                dark_image=image,
-                size=image.size,
-            )
+            chart_image = ctk.CTkImage(light_image=image,dark_image=image,size=image.size)
 
             self.images.append(chart_image)
 
-            image_label = ctk.CTkLabel(
-                card,
-                image=chart_image,
-                text="",
-            )
-
-            image_label.pack(
-                padx=20,
-                pady=(0, 20),
-            )
+            image_label = ctk.CTkLabel(card,image=chart_image,text="")
+            image_label.pack(padx=20,pady=(0, 20),)
 
     def show_message(self, parent, message):
-        """Display a message when data is unavailable."""
-
-        label = ctk.CTkLabel(
-            parent,
-            text=message,
-            text_color=TEXT_SECONDARY,
-            font=ctk.CTkFont(size=13),
-        )
-
+        # Display a message when data is unavailable.
+        label = ctk.CTkLabel(parent,text=message,text_color=TEXT_SECONDARY,font=ctk.CTkFont(size=13))
         label.pack(padx=20, pady=20)

@@ -14,7 +14,6 @@ from .styles import (
     BORDER,
 )
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 METRICS_DIR = PROJECT_ROOT / "results" / "metrics"
@@ -40,7 +39,7 @@ FEATURE_SET_NAMES = {
 
 
 class AnalysisPage(ctk.CTkFrame):
-    """Display feature importance and experimental results."""
+    # Display feature importance and experimental results.
 
     def __init__(self, master):
         super().__init__(
@@ -74,20 +73,10 @@ class AnalysisPage(ctk.CTkFrame):
         self.create_gene_split_evaluation()
 
     def create_header(self):
-        """Create the page title and description."""
+        # Create the page title and description.
 
-        header = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="transparent",
-        )
-
-        header.grid(
-            row=0,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(30, 20),
-        )
+        header = ctk.CTkFrame(self.scroll_frame,fg_color="transparent")
+        header.grid(row=0,column=0,sticky="ew",padx=30,pady=(30, 20))
 
         ctk.CTkLabel(
             header,
@@ -110,20 +99,9 @@ class AnalysisPage(ctk.CTkFrame):
         )
 
     def create_section(self, row, title, description):
-        """Create a reusable analysis section."""
-
-        section = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="transparent",
-        )
-
-        section.grid(
-            row=row,
-            column=0,
-            sticky="ew",
-            padx=30,
-            pady=(0, 30),
-        )
+        # Create a reusable analysis section.
+        section = ctk.CTkFrame(self.scroll_frame,fg_color="transparent")
+        section.grid(row=row,column=0,sticky="ew",padx=30,pady=(0, 30))
 
         ctk.CTkLabel(
             section,
@@ -153,25 +131,15 @@ class AnalysisPage(ctk.CTkFrame):
         return section
 
     def create_card(self, parent):
-        """Create a reusable content card."""
+        # Create a reusable content card.
 
-        card = ctk.CTkFrame(
-            parent,
-            fg_color=CARD,
-            corner_radius=12,
-            border_width=1,
-            border_color=BORDER,
-        )
-
-        card.pack(
-            fill="x",
-            pady=(0, 15),
-        )
+        card = ctk.CTkFrame(parent,fg_color=CARD,corner_radius=12,border_width=1,border_color=BORDER)
+        card.pack(fill="x",pady=(0, 15),)
 
         return card
 
     def show_message(self, parent, message):
-        """Display a message when data is unavailable."""
+        # Display a message when data is unavailable.
 
         ctk.CTkLabel(
             parent,
@@ -184,7 +152,7 @@ class AnalysisPage(ctk.CTkFrame):
         )
 
     def add_image(self, parent, filename):
-        """Load and display an existing analysis figure."""
+        # Load and display an existing analysis figure.
 
         image_path = FIGURES_DIR / filename
 
@@ -225,18 +193,11 @@ class AnalysisPage(ctk.CTkFrame):
             )
 
     def create_table(self, parent, columns, rows):
-        """Create a table using CustomTkinter labels."""
+        # Create a table using CustomTkinter labels.
 
-        table = ctk.CTkFrame(
-            parent,
-            fg_color="transparent",
-        )
+        table = ctk.CTkFrame(parent,fg_color="transparent")
 
-        table.pack(
-            fill="x",
-            padx=15,
-            pady=15,
-        )
+        table.pack(fill="x",padx=15,pady=15,)
 
         for column in range(len(columns)):
             table.grid_columnconfigure(column, weight=1)
@@ -277,8 +238,7 @@ class AnalysisPage(ctk.CTkFrame):
                 )
 
     def create_feature_importance(self):
-        """Display model interpretation figures."""
-
+        # Display model interpretation figures.
         section = self.create_section(
             row=1,
             title="Feature Importance",
@@ -341,8 +301,7 @@ class AnalysisPage(ctk.CTkFrame):
         )
 
     def create_ablation_study(self):
-        """Display the feature-group ablation study."""
-
+        # Display the feature-group ablation study.
         section = self.create_section(
             row=2,
             title="Ablation Study",
@@ -425,8 +384,7 @@ class AnalysisPage(ctk.CTkFrame):
             )
 
     def create_gene_split_evaluation(self):
-        """Display random and gene-based split evaluation results."""
-
+        # Display random and gene-based split evaluation results.
         section = self.create_section(
             row=3,
             title="Gene-Based Evaluation",
@@ -436,30 +394,20 @@ class AnalysisPage(ctk.CTkFrame):
             ),
         )
 
-        comparison_file = (
-            METRICS_DIR / "gene_split_comparison.csv"
-        )
+        comparison_file = (METRICS_DIR / "gene_split_comparison.csv")
 
-        summary_file = (
-            METRICS_DIR / "gene_split_summary.csv"
-        )
+        summary_file = (METRICS_DIR / "gene_split_summary.csv")
 
         card = self.create_card(section)
 
         if not comparison_file.exists() or not summary_file.exists():
-            self.show_message(
-                card,
-                "Gene-based evaluation results are unavailable.",
-            )
+            self.show_message(card,"Gene-based evaluation results are unavailable.")
             return
 
         try:
             comparison = pd.read_csv(comparison_file)
 
-            summary = pd.read_csv(
-                summary_file,
-                index_col=0,
-            )
+            summary = pd.read_csv(summary_file,index_col=0)
 
             # Random split baseline
             random_row = comparison.loc[
@@ -470,9 +418,7 @@ class AnalysisPage(ctk.CTkFrame):
             gene_mean = summary.loc["mean"]
             gene_std = summary.loc["std"]
 
-            columns = ["Evaluation"] + [
-                name for name, _ in METRIC_COLUMNS
-            ]
+            columns = ["Evaluation"] + [name for name, _ in METRIC_COLUMNS]
 
             rows = []
 
@@ -497,11 +443,7 @@ class AnalysisPage(ctk.CTkFrame):
                 ]
             )
 
-            self.create_table(
-                card,
-                columns,
-                rows,
-            )
+            self.create_table(card,columns,rows)
 
             ctk.CTkLabel(
                 card,
@@ -561,11 +503,7 @@ class AnalysisPage(ctk.CTkFrame):
                     ]
                 )
 
-            self.create_table(
-                details_card,
-                detail_columns,
-                detail_rows,
-            )
+            self.create_table(details_card,detail_columns,detail_rows)
 
             explanation = self.create_card(section)
 
@@ -592,7 +530,4 @@ class AnalysisPage(ctk.CTkFrame):
             )
 
         except (OSError, ValueError, KeyError, IndexError) as error:
-            self.show_message(
-                card,
-                f"Unable to read gene-based results: {error}",
-            )
+            self.show_message(card,f"Unable to read gene-based results: {error}")

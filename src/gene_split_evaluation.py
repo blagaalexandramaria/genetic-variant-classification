@@ -41,7 +41,7 @@ METRIC_COLUMNS = [
 
 
 def build_model() -> Pipeline:
-    """Build a Logistic Regression pipeline without GeneSymbol."""
+    # Build a Logistic Regression pipeline without GeneSymbol.
 
     preprocessor = ColumnTransformer(
         transformers=[
@@ -72,25 +72,14 @@ def build_model() -> Pipeline:
     )
 
 
-def evaluate_split(
-    split_name: str,
-    X_train: pd.DataFrame,
-    X_test: pd.DataFrame,
-    y_train: pd.Series,
-    y_test: pd.Series,
-) -> dict:
-    """Train and evaluate the model for a given data split."""
-
+def evaluate_split(split_name: str,X_train: pd.DataFrame, X_test: pd.DataFrame,y_train: pd.Series,y_test: pd.Series,) -> dict:
+    # Train and evaluate the model for a given data split.
     print(f"\nEvaluating: {split_name}")
 
     model = build_model()
     model.fit(X_train, y_train)
 
-    metrics = evaluate_classification_model(
-        model,
-        X_test,
-        y_test,
-    )
+    metrics = evaluate_classification_model(model,X_test,y_test)
 
     metrics["split"] = split_name
     metrics["train_samples"] = len(X_train)
@@ -204,13 +193,9 @@ def main() -> None:
     results_df.to_csv(output_path, index=False)
 
     # Calculate mean and standard deviation for gene-based splits.
-    gene_results_df = results_df[
-        results_df["iteration"] > 0
-    ]
+    gene_results_df = results_df[results_df["iteration"] > 0]
 
-    summary_df = gene_results_df[METRIC_COLUMNS].agg(
-        ["mean", "std"]
-    )
+    summary_df = gene_results_df[METRIC_COLUMNS].agg(["mean", "std"])
 
     summary_path = METRICS_DIR / "gene_split_summary.csv"
     summary_df.to_csv(summary_path)

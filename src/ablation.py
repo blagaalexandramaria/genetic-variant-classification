@@ -66,11 +66,8 @@ FEATURE_SETS = {
 }
 
 
-def build_model(
-    categorical_features: list[str],
-    numeric_features: list[str],
-) -> Pipeline:
-    """Build a Logistic Regression pipeline for a given feature set."""
+def build_model(categorical_features: list[str], numeric_features: list[str]) -> Pipeline:
+    # Build a Logistic Regression pipeline for a given feature set.
 
     preprocessor = ColumnTransformer(
         transformers=[
@@ -132,11 +129,7 @@ def main() -> None:
 
         model.fit(X_train, y_train)
 
-        metrics = evaluate_classification_model(
-            model,
-            X_test,
-            y_test,
-        )
+        metrics = evaluate_classification_model(model,X_test,y_test)
 
         metrics["feature_set"] = feature_set_name
         results.append(metrics)
